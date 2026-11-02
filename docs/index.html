@@ -3,375 +3,314 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>og//checker · Hunt OG handles</title>
-<meta name="description" content="Free Windows app that scans Minecraft, Roblox, Discord, TikTok, GitHub and Instagram for open 3L, 4L, 4C and dictionary usernames, and tracks Minecraft name drops.">
-<meta property="og:title" content="og//checker">
-<meta property="og:description" content="Catch the OG before it's gone. 3L, 4L, 4C and dictionary handles across six platforms.">
+<title>OG Checker for Windows</title>
+<meta name="description" content="A lightweight Windows app that finds open usernames on Minecraft, Roblox, Discord, TikTok, GitHub and Instagram, with 3L, 4L and dictionary names ranked first.">
+<meta property="og:title" content="OG Checker">
+<meta property="og:description" content="A lightweight Windows app for finding open usernames.">
 <meta property="og:image" content="screenshot.webp">
-<meta name="theme-color" content="#07070b">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%239d6bff'/%3E%3Cstop offset='1' stop-color='%23ff4fd8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-family='monospace' font-weight='700' font-size='26' text-anchor='middle' fill='white'%3EOG%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0a'/%3E%3Crect x='1' y='1' width='62' height='62' rx='13' fill='none' stroke='%23ffffff' stroke-opacity='.25' stroke-width='2'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='700' font-size='26' text-anchor='middle' fill='white'%3EOG%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#07070b; --bg2:#0b0b11; --panel:#0e0e15; --panel2:#15151f; --line:#1f1f2c; --line2:#2c2c3d;
-  --text:#ecebf5; --muted:#9592ab; --dim:#5f5c75;
-  --v:#9d6bff; --p:#ff4fd8; --grad:linear-gradient(135deg,#9d6bff,#7b4bff 55%,#ff4fd8);
-  --green:#3ddc84; --gold:#f5c04a; --red:#ff6b6b; --cyan:#4de1ff;
-  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --bg:#0a0a0a; --surface:#0f0f0f; --surface2:#141414;
+  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.14); --border3:rgba(255,255,255,.24);
+  --text:#fafafa; --muted:#a3a3a3; --dim:#6e6e6e; --faint:#333;
+  --ok:#22c55e;
+  --sans:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono","Cascadia Mono",Consolas,ui-monospace,monospace;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:clip}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.035;background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px)}
-a{color:inherit}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+/* fine film grain over everything, like the reference */
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
-.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
-code,.mono{font-family:var(--mono)}
-.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+code{font-family:var(--mono);font-size:.92em}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 
-/* nav */
-nav{position:sticky;top:0;z-index:20;background:rgba(7,7,11,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
-nav.scrolled{border-bottom-color:var(--line)}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 17px var(--mono);letter-spacing:-.03em}
-.brand em{font-style:normal;color:var(--v)}
-.logo{width:32px;height:32px;border-radius:9px;background:var(--grad);display:grid;place-items:center;color:#fff;font:800 12.5px var(--mono);letter-spacing:-.04em;box-shadow:0 0 22px -4px rgba(157,107,255,.8)}
-.links{display:flex;align-items:center;gap:28px;font:500 13px var(--mono);text-transform:uppercase;letter-spacing:.06em}
-.links a{color:var(--muted);text-decoration:none;transition:color .15s}
-.links a:hover{color:var(--text)}
-.btn-sm{border:1px solid var(--line2);color:var(--text)!important;padding:7px 14px;border-radius:9px;background:var(--panel)}
-.btn-sm:hover{border-color:var(--v);box-shadow:0 0 18px -6px var(--v)}
+/* header */
+header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);background:rgba(10,10,10,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.wordmark{font-weight:700;font-size:16px;letter-spacing:-.02em}
+.release{display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.14);flex:none}
+.ver{font-size:12px;color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:4px 10px;background:var(--surface);font-weight:500}
+nav.links{display:flex;gap:26px;font-size:13px;color:var(--dim);margin-right:auto;margin-left:48px}
+nav.links a:hover{color:var(--text)}
 
 /* hero */
-.hero{position:relative;padding:76px 0 30px}
-.hero::before{content:"";position:absolute;inset:-160px 0 auto;height:760px;background:radial-gradient(520px 320px at 22% 35%,rgba(157,107,255,.20),transparent 70%),radial-gradient(480px 300px at 82% 30%,rgba(255,79,216,.12),transparent 70%);pointer-events:none}
-.grid-bg{position:absolute;inset:-64px 0 0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:44px 44px;opacity:.4;mask-image:radial-gradient(ellipse 80% 70% at 50% 25%,#000 15%,transparent 72%);-webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 25%,#000 15%,transparent 72%);pointer-events:none}
-.hero-grid{position:relative;display:grid;grid-template-columns:1.08fr .92fr;gap:48px;align-items:center}
-.eyebrow{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--line2);background:var(--panel);border-radius:999px;padding:5px 14px 5px 6px;font:500 12.5px var(--mono);color:var(--muted)}
-.eyebrow b{background:var(--grad);color:#fff;border-radius:999px;padding:1px 9px;font-weight:700}
-.live{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(61,220,132,.6);animation:pulse 1.8s infinite}
-@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(61,220,132,0)}100%{box-shadow:0 0 0 0 rgba(61,220,132,0)}}
-h1{font-size:clamp(40px,4.9vw,64px);line-height:.98;letter-spacing:-.045em;margin:22px 0 0;font-weight:900}
-h1 .hl{font-family:var(--mono);font-weight:800;letter-spacing:-.06em}
-.sub{font-size:clamp(16.5px,1.8vw,19px);color:var(--muted);max-width:540px;margin:22px 0 0}
-.sub b{color:var(--text);font-family:var(--mono);font-weight:600;font-size:.94em}
-.cta{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-top:34px}
-.dl{display:inline-flex;align-items:center;gap:14px;background:var(--grad);color:#fff;text-decoration:none;border:0;border-radius:14px;padding:15px 26px 15px 20px;font:800 16.5px var(--mono);text-transform:uppercase;letter-spacing:.03em;box-shadow:0 12px 44px -10px rgba(157,107,255,.85),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,box-shadow .15s,filter .15s;cursor:pointer}
-.dl:hover{transform:translateY(-2px);box-shadow:0 18px 56px -10px rgba(255,79,216,.8),inset 0 1px 0 rgba(255,255,255,.25);filter:brightness(1.07)}
-.dl:active{transform:none}
-.dl svg{flex:none}
-.dl .t{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2}
-.dl .t small{font:600 11.5px var(--mono);text-transform:none;letter-spacing:0;opacity:.8}
-.dl.wait{background:var(--panel2);color:var(--muted);box-shadow:none;cursor:default}
-.meta{display:flex;gap:16px;flex-wrap:wrap;font:500 12.5px var(--mono);color:var(--dim)}
-.meta span::before{content:"✓ ";color:var(--green)}
-.note-box{display:none;max-width:470px;font-size:13.5px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:12px 16px;color:var(--muted)}
+.hero{position:relative;text-align:center;padding:92px 0 40px}
+.hero::before{content:"";position:absolute;left:50%;top:-140px;width:min(1100px,100vw);height:620px;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,255,255,.07),transparent)}
+.pill{position:relative;display:inline-flex;align-items:center;gap:10px;border:1px solid var(--border2);border-radius:999px;padding:7px 15px;font-size:11.5px;letter-spacing:.08em;color:var(--muted);background:rgba(15,15,15,.7)}
+.pill i{width:5px;height:5px;border-radius:50%;background:var(--text)}
+h1{position:relative;margin:30px 0 0;font-size:clamp(64px,11vw,132px);line-height:.95;letter-spacing:-.06em;font-weight:800;
+  background:linear-gradient(180deg,#ffffff 15%,#b5b5b5 60%,#6f6f6f 100%);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.06em}
+.lede{position:relative;max-width:470px;margin:26px auto 0;color:var(--muted);font-size:16px;line-height:1.7}
+
+.card{position:relative;max-width:400px;margin:44px auto 0;border:1px solid var(--border2);border-radius:16px;padding:22px;background:linear-gradient(180deg,rgba(22,22,22,.9),rgba(12,12,12,.9));text-align:left;box-shadow:0 30px 80px -40px rgba(0,0,0,.9)}
+.card-top{display:flex;align-items:center;gap:14px}
+.app-ic{width:44px;height:44px;border-radius:11px;border:1px solid var(--border2);display:grid;place-items:center;background:var(--surface2);font:700 13px var(--sans);letter-spacing:-.02em}
+.card-top b{display:block;font-weight:600;font-size:14.5px}
+.card-top span{font-size:12px;color:var(--dim)}
+.dl{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;height:48px;border-radius:10px;background:var(--text);color:var(--bg);font-weight:600;font-size:14.5px;transition:opacity .15s,transform .15s;box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 10px 30px -14px rgba(255,255,255,.45)}
+.dl:hover{opacity:.9}
+.dl:active{transform:translateY(1px)}
+.dl.wait{background:var(--surface2);color:var(--dim);box-shadow:none;cursor:default;border:1px solid var(--border)}
+.card-meta{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:16px;font-size:11.5px;color:var(--dim)}
+.card-meta i{width:3px;height:3px;border-radius:50%;background:var(--faint)}
+.note-box{display:none;margin-top:14px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;line-height:1.55}
 .note-box.show{display:block}
-.note-box b{color:var(--text)}
+.note-box b{color:var(--text);font-weight:600}
 
-/* scanner terminal */
-.term{position:relative;border:1px solid var(--line2);border-radius:16px;background:rgba(11,11,17,.92);box-shadow:0 30px 80px -30px rgba(0,0,0,.9),0 0 0 1px rgba(157,107,255,.08),0 0 60px -20px rgba(157,107,255,.45);overflow:hidden;font:13px/1.7 var(--mono)}
-.term-top{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--line);color:var(--dim);font-size:12px}
-.term-top i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
-.term-top span{margin-left:10px}
-.term-top .stat{margin-left:auto;color:var(--green)}
-.term-body{height:330px;padding:12px 16px;overflow:hidden;position:relative;mask-image:linear-gradient(#000 70%,transparent);-webkit-mask-image:linear-gradient(#000 70%,transparent)}
-.ln{display:grid;grid-template-columns:44px 1fr auto auto;gap:10px;align-items:center;white-space:nowrap;animation:in .35s ease both}
-@keyframes in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.ln .pf{color:var(--dim)}
-.ln .nm{color:var(--text);overflow:hidden;text-overflow:clip;min-width:0}
-.ln .nm::after{content:" ...................................";color:var(--line2)}
-.ln .cl{color:var(--muted);font-size:11px;border:1px solid var(--line2);border-radius:4px;padding:0 5px}
-.ln .st{font-weight:700;min-width:58px;text-align:right}
-.ln.open .st{color:var(--green)} .ln.taken .st{color:var(--red)} .ln.og .st{color:var(--gold)} .ln.drop .st{color:var(--cyan)}
-.ln.og .nm{color:var(--gold);text-shadow:0 0 12px rgba(245,192,74,.4)}
-.ln.og .cl{background:var(--grad);color:#fff;border-color:transparent}
-.ln.taken .nm{color:var(--dim)}
-.term-foot{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:9px 16px;color:var(--dim);font-size:11.5px}
-.term-foot b{color:var(--gold);font-weight:700}
-.cursor{display:inline-block;width:7px;height:14px;background:var(--v);vertical-align:-2px;animation:blink 1s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
-
-/* platform strip */
-.plat-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:64px;justify-content:center;position:relative}
-.plat{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 16px 9px 9px;font:600 14px var(--mono)}
-.plat .m{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line2);color:var(--muted);font-size:12px;font-weight:800}
-.plat small{color:var(--dim);font-weight:500;font-size:11px}
+.mini{display:flex;justify-content:center;gap:56px;margin-top:56px;text-align:center}
+.mini b{display:block;font-weight:500;font-size:13.5px}
+.mini span{font-size:12px;color:var(--dim)}
 
 /* screenshot */
-.shot{position:relative;margin:56px auto 0;max-width:1100px}
-.shot::before{content:"";position:absolute;inset:6% 4% -6%;background:radial-gradient(closest-side,rgba(157,107,255,.32),transparent),radial-gradient(closest-side at 80% 60%,rgba(255,79,216,.18),transparent);filter:blur(46px)}
-.window{position:relative;border-radius:16px;border:1px solid var(--line2);background:var(--panel);overflow:hidden;box-shadow:0 40px 100px -30px rgba(0,0,0,.9)}
-.chrome{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--bg2)}
-.chrome i{width:11px;height:11px;border-radius:50%;background:var(--line2)}
-.chrome .url{margin-left:14px;flex:1;max-width:340px;background:var(--panel);border:1px solid var(--line);border-radius:7px;font:12px var(--mono);color:var(--dim);padding:4px 10px}
+.shot{margin:88px auto 0;max-width:1080px;border:1px solid var(--border2);border-radius:14px;overflow:hidden;background:var(--surface);box-shadow:0 50px 120px -50px rgba(0,0,0,1),0 0 0 6px rgba(255,255,255,.02)}
+.bar{display:flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-bottom:1px solid var(--border);background:#0d0d0d}
+.bar i{width:10px;height:10px;border-radius:50%;background:#262626}
+.bar span{flex:1;text-align:center;font-size:11.5px;color:var(--dim);margin-right:40px}
 
 /* sections */
-section.block{padding:110px 0 0}
-.kicker{font:600 12.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--v)}
-.kicker::before{content:"// "}
-.head{max-width:680px}
-.head.c{margin:0 auto;text-align:center}
-.head h2{font-size:clamp(32px,4.4vw,50px);letter-spacing:-.04em;line-height:1.04;margin:12px 0 0;font-weight:900}
-.head p{color:var(--muted);font-size:17px;margin:14px 0 0}
+section{padding:128px 0 0}
+.eyebrow{font-size:11.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+h2{margin:12px 0 0;font-size:clamp(30px,4vw,44px);letter-spacing:-.04em;line-height:1.08;font-weight:700;
+  background:linear-gradient(180deg,#fff 30%,#9a9a9a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);margin:14px 0 0;max-width:520px;line-height:1.7}
+.center{text-align:center}
+.center .sub{margin-left:auto;margin-right:auto}
 
-/* name classes */
-.classes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:44px}
-.cls{position:relative;border:1px solid var(--line);border-radius:18px;padding:22px 22px 20px;background:linear-gradient(180deg,var(--panel),var(--bg2));overflow:hidden;transition:border-color .2s,transform .2s}
-.cls:hover{transform:translateY(-3px);border-color:var(--line2)}
-.cls.top{border-color:rgba(157,107,255,.45);background:radial-gradient(260px 140px at 100% 0%,rgba(255,79,216,.14),transparent),linear-gradient(180deg,rgba(157,107,255,.10),var(--bg2))}
-.cls .tag{display:inline-flex;align-items:center;gap:8px;font:800 30px var(--mono);letter-spacing:-.05em}
-.cls.top .tag{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.cls .lvl{position:absolute;right:18px;top:20px;font:700 10.5px var(--mono);text-transform:uppercase;letter-spacing:.08em;border-radius:6px;padding:3px 8px;background:var(--panel2);color:var(--muted);border:1px solid var(--line2)}
-.cls.top .lvl{background:var(--grad);color:#fff;border-color:transparent}
-.cls h3{margin:6px 0 0;font-size:16px;font-weight:700}
-.cls p{margin:6px 0 0;color:var(--muted);font-size:14.5px}
-.ex{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
-.ex code{font-size:13px;font-weight:700;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:2px 9px;color:var(--gold)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);margin-top:48px;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.cell{padding:28px;background:var(--surface)}
+.cell + .cell{border-left:1px solid var(--border)}
+.grid3.two-rows .cell:nth-child(n+4){border-top:1px solid var(--border)}
+.grid3.two-rows .cell:nth-child(4){border-left:0}
+.cell .ic{width:34px;height:34px;border:1px solid var(--border2);border-radius:9px;display:grid;place-items:center;color:var(--muted);margin-bottom:18px;background:var(--surface2)}
+.cell h3{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.cell p{margin:6px 0 0;color:var(--dim);font-size:13.5px;line-height:1.65}
 
-/* drops */
-.drops{display:grid;grid-template-columns:.95fr 1.05fr;gap:48px;align-items:center}
-.timeline{border:1px solid var(--line2);border-radius:18px;background:var(--panel);padding:26px}
-.tl-name{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono)}
-.tl-name b{font-size:30px;letter-spacing:-.04em;color:var(--cyan);text-shadow:0 0 18px rgba(77,225,255,.35)}
-.tl-name span{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:6px;padding:2px 8px}
-.track{position:relative;height:10px;border-radius:999px;background:var(--bg);margin:26px 0 10px;overflow:hidden;border:1px solid var(--line)}
-.track div{position:absolute;inset:0 30% 0 0;background:linear-gradient(90deg,var(--red),var(--v) 30%,var(--cyan));border-radius:999px}
-.track::after{content:"";position:absolute;left:70%;top:-4px;bottom:-4px;width:2px;background:#fff;box-shadow:0 0 10px #fff}
-.tl-steps{display:grid;grid-template-columns:repeat(3,1fr);font:12px var(--mono);color:var(--dim)}
-.tl-steps div:nth-child(2){text-align:center}
-.tl-steps div:nth-child(3){text-align:right}
-.tl-steps b{display:block;color:var(--text);font-size:13px}
-.tl-out{margin-top:20px;border-top:1px dashed var(--line2);padding-top:16px;font:13px var(--mono);color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.tl-out b{color:var(--cyan)}
-.drops ul{list-style:none;padding:0;margin:22px 0 0;display:flex;flex-direction:column;gap:12px}
-.drops li{display:flex;gap:12px;color:var(--muted);font-size:15.5px}
-.drops li::before{content:"›";color:var(--v);font:800 18px var(--mono);line-height:1.4}
-.drops li b{color:var(--text)}
+.table{margin-top:48px;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.row{display:grid;grid-template-columns:120px 1fr 1.1fr 220px;gap:20px;align-items:center;padding:16px 24px;background:var(--surface)}
+.row + .row{border-top:1px solid var(--border)}
+.row.head{background:transparent;font-size:11.5px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;padding-top:12px;padding-bottom:12px}
+.row .cls{font:600 15px var(--mono);letter-spacing:-.02em}
+.row .name{font-weight:500}
+.row .desc{color:var(--dim);font-size:13.5px}
+.row .ex{display:flex;gap:6px;justify-content:flex-end}
+.row .ex code{font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:2px 8px;color:var(--muted)}
+.lvl{display:inline-block;font:600 10px/1 var(--mono);border-radius:4px;padding:4px 6px;margin-left:8px;vertical-align:2px}
+.lvl.og{background:var(--text);color:var(--bg)}
+.lvl.rare{border:1px solid var(--border2);color:var(--muted)}
 
-/* features */
-.features{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:44px}
-.feat{border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--panel)}
-.feat .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:rgba(157,107,255,.12);color:var(--v);margin-bottom:16px}
-.feat h3{margin:0;font-size:16px}
-.feat p{margin:6px 0 0;color:var(--muted);font-size:14.5px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.drop{border:1px solid var(--border2);border-radius:16px;padding:26px;background:var(--surface)}
+.drop-top{display:flex;justify-content:space-between;align-items:center}
+.drop-top b{font:600 24px var(--mono);letter-spacing:-.03em}
+.drop-top span{font:600 10px/1 var(--mono);background:var(--text);color:var(--bg);border-radius:4px;padding:4px 6px}
+.track{position:relative;height:2px;background:var(--faint);margin:28px 0 12px}
+.track div{position:absolute;left:0;top:0;bottom:0;width:70%;background:var(--text)}
+.track i{position:absolute;left:70%;top:50%;width:9px;height:9px;border-radius:50%;background:var(--text);transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(255,255,255,.1)}
+.steps3{display:grid;grid-template-columns:repeat(3,1fr);font-size:12px;color:var(--dim)}
+.steps3 div:nth-child(2){text-align:center}
+.steps3 div:nth-child(3){text-align:right}
+.steps3 b{display:block;color:var(--text);font-weight:500;font-size:12.5px}
+.drop-foot{display:flex;justify-content:space-between;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);font-size:12.5px;color:var(--dim)}
+.drop-foot b{color:var(--text);font-weight:500}
+.list{list-style:none;margin:24px 0 0;padding:0}
+.list li{padding:14px 0;border-top:1px solid var(--border);color:var(--muted);font-size:14.5px;line-height:1.6}
+.list li:last-child{border-bottom:1px solid var(--border)}
+.list b{color:var(--text);font-weight:500}
 
-/* steps */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:44px;counter-reset:s}
-.step{border:1px solid var(--line);border-radius:18px;padding:24px;background:var(--panel)}
-.step::before{counter-increment:s;content:"0" counter(s);display:block;font:800 30px var(--mono);letter-spacing:-.05em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:10px}
-.step h3{margin:0;font-size:17px}
-.step p{margin:6px 0 0;color:var(--muted);font-size:14.5px}
-
-.faq{max-width:780px;margin:40px auto 0}
-.faq details{border-bottom:1px solid var(--line)}
-.faq summary{cursor:pointer;list-style:none;padding:19px 4px;font-weight:600;font-size:16px;display:flex;justify-content:space-between;gap:16px}
+.faq{max-width:720px;margin:44px auto 0;border-top:1px solid var(--border)}
+.faq details{border-bottom:1px solid var(--border)}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 2px;font-weight:500;font-size:15px}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"+";color:var(--v);font:400 22px/1 var(--mono);transition:transform .2s}
-.faq details[open] summary::after{transform:rotate(45deg)}
-.faq details p{margin:-6px 4px 20px;color:var(--muted);font-size:15px}
+.faq summary svg{color:var(--dim);transition:transform .2s;flex:none}
+.faq details[open] summary svg{transform:rotate(45deg)}
+.faq details p{margin:-4px 2px 20px;color:var(--dim);font-size:14px;line-height:1.7}
+.faq details p b{color:var(--muted);font-weight:500}
 
-.final{position:relative;margin:120px auto 0;text-align:center;border:1px solid rgba(157,107,255,.35);border-radius:24px;padding:68px 24px;background:radial-gradient(520px 240px at 50% 0%,rgba(157,107,255,.22),transparent),radial-gradient(400px 200px at 50% 100%,rgba(255,79,216,.10),transparent),var(--panel);overflow:hidden}
-.final h2{font-size:clamp(30px,4.6vw,52px);letter-spacing:-.045em;margin:0;font-weight:900;line-height:1.04}
-.final p{color:var(--muted);margin:14px 0 30px;font-family:var(--mono);font-size:14px}
-.final .cta{align-items:center;margin-top:0}
-footer{margin-top:80px;border-top:1px solid var(--line);padding:26px 0 40px;font:12.5px var(--mono);color:var(--dim)}
-footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-footer a{color:var(--muted)}
+.final{margin:140px auto 0;text-align:center;padding:84px 24px;border:1px solid var(--border);border-radius:20px;position:relative;overflow:hidden;
+  background:radial-gradient(600px 260px at 50% 0%,rgba(255,255,255,.07),transparent),var(--surface)}
+.final h2{font-size:clamp(32px,4.6vw,52px)}
+.final .sub{margin-bottom:32px}
+.final .dl{display:inline-flex;padding:0 28px;margin:0}
+footer{margin-top:96px;border-top:1px solid var(--border);padding:28px 0 44px;font-size:12.5px;color:var(--dim)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+footer a:hover{color:var(--text)}
 
-.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.ln,.cursor,.live{animation:none}}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
 
-@media (max-width:980px){
-  .hero-grid,.drops{grid-template-columns:1fr}
-  .classes{grid-template-columns:1fr 1fr}
-  .features{grid-template-columns:1fr 1fr}
-  .steps{grid-template-columns:1fr}
+@media (max-width:900px){
+  nav.links{display:none}
+  .grid3{grid-template-columns:1fr}
+  .cell + .cell{border-left:0;border-top:1px solid var(--border)}
+  .row{grid-template-columns:90px 1fr;row-gap:6px}
+  .row .desc{grid-column:2}
+  .row .ex{grid-column:2;justify-content:flex-start}
+  .row.head{display:none}
+  .split{grid-template-columns:1fr;gap:40px}
 }
-@media (max-width:620px){
+@media (max-width:560px){
   .wrap{padding:0 16px}
-  .links a:not(.btn-sm){display:none}
-  .hero{padding-top:48px}
-  .classes,.features{grid-template-columns:1fr}
-  .term-body{height:260px}
-  .ln{grid-template-columns:38px 1fr auto auto;font-size:12px}
-  .dl{padding:14px 20px 14px 16px;font-size:15px}
+  .hero{padding-top:64px}
+  .mini{gap:24px}
+  .release span.lbl{display:none}
 }
 </style>
 </head>
 <body>
 
-<nav id="nav">
+<header>
   <div class="wrap">
-    <a class="brand" href="#top"><span class="logo">OG</span><span>og<em>//</em>checker</span></a>
-    <div class="links">
-      <a href="#classes">Classes</a>
-      <a href="#drops">Drops</a>
-      <a href="#faq">FAQ</a>
-      <a class="btn-sm" href="#top">Download</a>
-    </div>
-  </div>
-</nav>
-
-<header class="hero" id="top">
-  <div class="grid-bg"></div>
-  <div class="wrap">
-    <div class="hero-grid">
-      <div>
-        <span class="eyebrow"><b>FREE</b><span class="live"></span> Windows app · nothing to install</span>
-        <h1>Catch the <span class="hl grad">OG</span><br>before it's gone.</h1>
-        <p class="sub">Scan six platforms for open <b>3L</b>, <b>4L</b>, <b>4C</b> and dictionary handles. OGs rank first, junk never shows up, and Minecraft drops get tracked for you.</p>
-        <div class="cta" id="download">
-          <a class="dl" href="#" data-download>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-            <span class="t">Download for Windows<small data-version>OGChecker.exe</small></span>
-          </a>
-          <div class="meta"><span>Windows 10 &amp; 11</span><span>No Python</span><span>No account</span></div>
-          <div class="note-box" id="dlNote"></div>
-        </div>
-      </div>
-
-      <div class="term reveal in" aria-hidden="true">
-        <div class="term-top"><i></i><i></i><i></i><span>og//checker · scan</span><span class="stat" id="tStat">● live</span></div>
-        <div class="term-body" id="term"></div>
-        <div class="term-foot"><span>checked <b id="tCount">0</b></span><span>OGs found <b id="tOg">0</b></span><span>rate 48/s<span class="cursor"></span></span></div>
-      </div>
-    </div>
-
-    <div class="plat-row">
-      <div class="plat"><span class="m">MC</span>Minecraft <small>fast</small></div>
-      <div class="plat"><span class="m">RB</span>Roblox <small>fast</small></div>
-      <div class="plat"><span class="m">DC</span>Discord</div>
-      <div class="plat"><span class="m">TT</span>TikTok</div>
-      <div class="plat"><span class="m">GH</span>GitHub</div>
-      <div class="plat"><span class="m">IG</span>Instagram</div>
-    </div>
-
-    <div class="shot">
-      <div class="window">
-        <div class="chrome"><i></i><i></i><i></i><span class="url">og//checker · 127.0.0.1:8765</span></div>
-        <img src="screenshot.webp" width="2720" height="1640" alt="og//checker scanning Minecraft 3 and 4 character names, with OG 3L and 4L handles ranked at the top">
-      </div>
-    </div>
+    <a class="wordmark" href="#top">OG Checker.</a>
+    <nav class="links"><a href="#features">Features</a><a href="#classes">Name classes</a><a href="#faq">FAQ</a></nav>
+    <div class="release"><span class="dot"></span><span class="lbl">Latest release</span><span class="ver" data-tag>Windows</span></div>
   </div>
 </header>
 
-<section class="block" id="classes">
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <span class="pill"><i></i>FIND RARE USERNAMES. FAST.</span>
+      <h1>OG Checker</h1>
+      <p class="lede">A lightweight Windows app that finds open usernames on Minecraft, Roblox, Discord, TikTok, GitHub and Instagram.</p>
+
+      <div class="card" id="download">
+        <div class="card-top">
+          <div class="app-ic">OG</div>
+          <div><b>OG Checker for Windows</b><span data-file>OGChecker.exe</span></div>
+        </div>
+        <a class="dl" href="#" data-download>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Download for Windows
+        </a>
+        <div class="card-meta"><span data-vershort>Latest version</span><i></i><span>Windows 10 / 11</span><i></i><span>Free</span></div>
+        <div class="note-box" id="dlNote"></div>
+      </div>
+
+      <div class="mini">
+        <div><b>Lightweight</b><span>One file, no installer</span></div>
+        <div><b>Six platforms</b><span>Minecraft to Instagram</span></div>
+        <div><b>OG first</b><span>3L, 4L and words on top</span></div>
+      </div>
+
+      <div class="shot reveal">
+        <div class="bar"><i></i><i></i><i></i><span>OG Checker</span></div>
+        <img src="screenshot.webp" width="2720" height="1640" alt="OG Checker scanning three and four character Minecraft names, with OG names listed first">
+      </div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="center reveal">
+        <div class="eyebrow">Features</div>
+        <h2>Everything you need.<br>Nothing you don't.</h2>
+        <p class="sub">Pick a platform, press Start, and the best names rise to the top while it works.</p>
+      </div>
+      <div class="grid3 two-rows reveal">
+        <div class="cell"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></div><h3>Ranked results</h3><p>Every open name is graded. OG names come first, then dictionary words, near-words and clean patterns.</p></div>
+        <div class="cell"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h6"/></svg></div><h3>Dictionary mode</h3><p>Checks real words only, so you skip random letters and get names people remember.</p></div>
+        <div class="cell"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><h3>Keyword search</h3><p>Finds every open variation of a name you already like, such as <code>1wolf</code> or <code>wolfx</code>.</p></div>
+        <div class="cell"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Minecraft drops</h3><p>Remembers names it saw taken and estimates when they become available again.</p></div>
+        <div class="cell"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M21 3v6h-6"/></svg></div><h3>Rate-limit safe</h3><p>Runs each platform at a safe pace and slows down automatically if a platform pushes back.</p></div>
+        <div class="cell"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></div><h3>Copy and export</h3><p>Click a name to copy it, copy a whole list, or export everything to a text file.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="classes">
+    <div class="wrap">
+      <div class="center reveal">
+        <div class="eyebrow">Name classes</div>
+        <h2>Know what a name is worth.</h2>
+        <p class="sub">Each result is tagged by length and type, so the rare ones stand out at a glance.</p>
+      </div>
+      <div class="table reveal">
+        <div class="row head"><div>Class</div><div>Meaning</div><div>Why it matters</div><div style="text-align:right">Examples</div></div>
+        <div class="row"><div class="cls">3L<span class="lvl og">OG</span></div><div class="name">Three letters</div><div class="desc">The rarest class on any platform.</div><div class="ex"><code>zek</code><code>ora</code></div></div>
+        <div class="row"><div class="cls">3C<span class="lvl og">OG</span></div><div class="name">Three characters</div><div class="desc">Letters and numbers mixed, or numbers only.</div><div class="ex"><code>x9k</code><code>404</code></div></div>
+        <div class="row"><div class="cls">4L<span class="lvl og">OG</span></div><div class="name">Four letters</div><div class="desc">Short, clean and hard to find.</div><div class="ex"><code>zion</code><code>kyra</code></div></div>
+        <div class="row"><div class="cls">Word<span class="lvl rare">RARE</span></div><div class="name">Dictionary word</div><div class="desc">Real words of any length.</div><div class="ex"><code>ember</code><code>talon</code></div></div>
+        <div class="row"><div class="cls">Semi<span class="lvl rare">RARE</span></div><div class="name">Near-word</div><div class="desc">One letter off a word, or an anagram.</div><div class="ex"><code>wolfz</code><code>pixl</code></div></div>
+        <div class="row"><div class="cls">4C<span class="lvl rare">RARE</span></div><div class="name">Four characters</div><div class="desc">Mixed names with a clean pattern.</div><div class="ex"><code>k1k1</code><code>xx7x</code></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap split">
+      <div class="reveal">
+        <div class="eyebrow">Minecraft drops</div>
+        <h2>See names before they drop.</h2>
+        <ul class="list">
+          <li>Minecraft holds a released name for <b>37 days</b> before anyone can claim it.</li>
+          <li>OG Checker <b>remembers every name it sees taken</b>. When one shows up free, it moves to Drops with an estimated date.</li>
+          <li>The more you scan, the more drops it catches. History stays on your PC.</li>
+        </ul>
+      </div>
+      <div class="drop reveal">
+        <div class="drop-top"><b>jet</b><span>OG 3L</span></div>
+        <div class="track"><div></div><i></i></div>
+        <div class="steps3"><div><b>Seen taken</b>Day 0</div><div><b>Released</b>Name change</div><div><b>Available</b>Day 37</div></div>
+        <div class="drop-foot"><span>Status: <b>On hold</b></span><span>Drops in <b>about 11 days</b></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="center reveal">
+        <div class="eyebrow">FAQ</div>
+        <h2>Questions.</h2>
+      </div>
+      <div class="faq">
+        <details><summary>Windows says "Windows protected your PC". Is that normal?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p>Yes. Windows shows this for new apps that are not signed with a paid certificate. Click <b>More info</b>, then <b>Run anyway</b>. You only need to do this once. The full source code is public if you want to review it.</p></details>
+        <details><summary>Do I need to install anything?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p>No. OG Checker is a single file. It uses the WebView2 component that already ships with Windows 10 and 11.</p></details>
+        <details><summary>What do 3L, 4L and 4C mean?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p>The number is the length and the letter is the type: <b>L</b> for letters only, <b>N</b> for numbers only, <b>C</b> for mixed characters. Names with three characters, or four letters, are tagged OG.</p></details>
+        <details><summary>If a name shows as available, can I always claim it?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p>Usually, but not always. Platforms sometimes reserve names, block certain words, or hold names from banned accounts. Instagram and TikTok are the least predictable. Anything that cannot be confirmed is shown as Unknown, never as available.</p></details>
+        <details><summary>Is there a Mac version?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p>Not as a download yet. Mac and Linux users can run it from the source code with Python.</p></details>
+      </div>
+    </div>
+  </section>
+
   <div class="wrap">
-    <div class="head c reveal">
-      <div class="kicker">Name classes</div>
-      <h2>Every hit gets tagged <span class="grad">and ranked</span></h2>
-      <p>You see what a name is worth at a glance. OGs float to the top, then dictionary words, then semis and clean patterns.</p>
-    </div>
-    <div class="classes">
-      <div class="cls top reveal"><span class="lvl">OG</span><div class="tag">3L</div><h3>Three letters</h3><p>The holy grail. Any open three-letter handle is an instant top pick.</p><div class="ex"><code>zek</code><code>vyx</code><code>ora</code></div></div>
-      <div class="cls top reveal"><span class="lvl">OG</span><div class="tag">3C / 3N</div><h3>Three characters</h3><p>Letters and numbers mixed, or all numbers. Still OG.</p><div class="ex"><code>x9k</code><code>7up</code><code>404</code></div></div>
-      <div class="cls top reveal"><span class="lvl">OG</span><div class="tag">4L</div><h3>Four letters</h3><p>Clean, short and hard to find, especially ones you can say out loud.</p><div class="ex"><code>zion</code><code>kyra</code><code>abba</code></div></div>
-      <div class="cls reveal"><span class="lvl">Rare</span><div class="tag">DICT</div><h3>Dictionary</h3><p>Real words. Check every word in the list without wading through random letters.</p><div class="ex"><code>ember</code><code>talon</code><code>glade</code></div></div>
-      <div class="cls reveal"><span class="lvl">Rare</span><div class="tag">SEMI</div><h3>Semi-OG</h3><p>One letter off a word, a hidden word, or an anagram. It looks like a word without being one.</p><div class="ex"><code>wolfz</code><code>pixl</code><code>xbearx</code></div></div>
-      <div class="cls reveal"><span class="lvl">Rare</span><div class="tag">4C</div><h3>Four characters</h3><p>Mixed four-character names with a pattern or double letter, so they still look clean.</p><div class="ex"><code>k1k1</code><code>xx7x</code><code>z_zz</code></div></div>
-    </div>
-  </div>
-</section>
-
-<section class="block" id="drops">
-  <div class="wrap drops">
-    <div class="reveal">
-      <div class="kicker">Minecraft drops</div>
-      <div class="head"><h2>Know when a name <span class="grad">drops</span>.</h2></div>
-      <ul>
-        <li><span>When someone changes a Minecraft name, the old one is <b>held for 37 days</b> before anyone can claim it.</span></li>
-        <li><span>The app <b>remembers every name it sees taken</b>. If one later shows up free, it goes to <b>Drops</b> with an estimated window.</span></li>
-        <li><span>The more you scan, the more drops it catches. Your history stays on your PC.</span></li>
-      </ul>
-    </div>
-    <div class="timeline reveal">
-      <div class="tl-name"><b>jet</b><span>OG 3L</span></div>
-      <div class="track"><div></div></div>
-      <div class="tl-steps"><div><b>Seen taken</b>day 0</div><div><b>Released</b>name change</div><div><b>Drops</b>day 37</div></div>
-      <div class="tl-out"><span>status: <b>held</b></span><span>drops in <b>~11d</b></span></div>
-    </div>
-  </div>
-</section>
-
-<section class="block">
-  <div class="wrap">
-    <div class="head c reveal">
-      <div class="kicker">Built in</div>
-      <h2>Everything you need to hunt</h2>
-    </div>
-    <div class="features">
-      <div class="feat reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><h3>Keyword spins</h3><p>Have a name in mind? Get every open variation, like <code>1wolf</code>, <code>wolfx</code> and <code>x.wolf</code>.</p></div>
-      <div class="feat reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/></svg></div><h3>Won't get you limited</h3><p>Each platform runs at a safe pace. When one pushes back, the app pauses and slows down on its own.</p></div>
-      <div class="feat reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></div><h3>OG-only filter</h3><p>One click hides everything except 3-character and 4-letter hits.</p></div>
-      <div class="feat reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></div><h3>Copy &amp; export</h3><p>Click a name to copy it, grab the whole list, or save everything to a .txt file.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="block">
-  <div class="wrap">
-    <div class="head c reveal">
-      <div class="kicker">Setup</div>
-      <h2>From download to hunting in a minute</h2>
-    </div>
-    <div class="steps">
-      <div class="step reveal"><h3>Download</h3><p>Grab <code>OGChecker.exe</code>. It's one file, with no installer and no Python.</p></div>
-      <div class="step reveal"><h3>Open it</h3><p>Double-click it. The app opens in your browser and runs on your own PC.</p></div>
-      <div class="step reveal"><h3>Scan &amp; claim</h3><p>Pick a platform, set the length to 3–4 and hit Start. Click a hit to copy it, then go claim it.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="block" id="faq">
-  <div class="wrap">
-    <div class="head c reveal">
-      <div class="kicker">FAQ</div>
-      <h2>Questions</h2>
-    </div>
-    <div class="faq">
-      <details><summary>Windows says "Windows protected your PC." Is that normal?</summary>
-        <p>Yes. Windows shows this for new apps that aren't signed with a paid certificate. Click <b>More info</b>, then <b>Run anyway</b>. You only have to do it once. The full source code is public if you want to check it.</p></details>
-      <details><summary>What do 3L, 4L and 4C mean?</summary>
-        <p>The number is the length and the letter is the type: <b>L</b> = letters only, <b>N</b> = numbers only, <b>C</b> = mixed characters. So <code>zek</code> is a 3L and <code>k1k1</code> is a 4C. Anything with 3 characters, or 4 letters, is tagged OG.</p></details>
-      <details><summary>Are there really open 3Ls left?</summary>
-        <p>On big platforms they're rare, and that's why you scan. Results vary a lot by platform: some still have open 4Ls and plenty of dictionary words, and Minecraft drops free up OGs all the time.</p></details>
-      <details><summary>If it says "open," is the name definitely claimable?</summary>
-        <p>Usually, but not always. Platforms sometimes reserve names, block words, or hold names from banned accounts. Instagram and TikTok are the least predictable. Anything the app can't confirm shows as "Unknown," never as open.</p></details>
-      <details><summary>Why does it open in my browser?</summary>
-        <p>Your browser is just the window. Everything runs on your own PC, at an address only your computer can reach. The only traffic is the name lookups to each platform.</p></details>
-      <details><summary>How do I close it?</summary>
-        <p>Click <b>Quit app</b> at the bottom left. If you just close the tab, the app shuts itself down after a few minutes.</p></details>
-    </div>
-  </div>
-</section>
-
-<div class="wrap">
-  <div class="final reveal">
-    <h2>Your next OG is <span class="grad">sitting there</span>.</h2>
-    <p>free · one file · scanning in seconds</p>
-    <div class="cta">
+    <div class="final reveal">
+      <h2>Your next username is open.</h2>
+      <p class="sub">Free for Windows 10 and 11.</p>
       <a class="dl" href="#" data-download>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-        <span class="t">Download for Windows<small data-version>OGChecker.exe</small></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Download for Windows
       </a>
     </div>
   </div>
-</div>
+</main>
 
 <footer>
   <div class="wrap">
-    <span>og//checker · <a href="#" id="srcLink">source</a></span>
+    <span>OG Checker. <a href="#" id="srcLink">Source code</a></span>
     <span>Not affiliated with Mojang, Microsoft, Roblox, Discord, ByteDance, GitHub or Meta.</span>
   </div>
 </footer>
 
 <script>
-/* ===== Download settings =====
+/* Download settings.
    On GitHub Pages this page finds your repository by itself.
-   Hosting it somewhere else? Fill in your GitHub name and repository name here. */
+   On your own domain, fill in your GitHub username and repository name below. */
 const CONFIG = { owner: "", repo: "", file: "OGChecker.exe" };
 
 function repo(){
@@ -400,17 +339,17 @@ document.addEventListener("click", e=>{
   if(!a) return;
   if(!R){
     e.preventDefault();
-    showNote("<b>Preview mode.</b> The download starts working once this page is on GitHub Pages, or after you fill in <code>CONFIG</code> at the bottom of this file.");
-    document.getElementById("top").scrollIntoView({behavior:"smooth"});
+    showNote("<b>Preview mode.</b> The download works once this page is on GitHub Pages, or after you fill in CONFIG at the bottom of this file.");
+    document.getElementById("download").scrollIntoView({behavior:"smooth", block:"center"});
     return;
   }
   if(!ready){
     e.preventDefault();
-    showNote("<b>The first build is still cooking.</b> GitHub builds the app a few minutes after you upload the files. Refresh in a moment.");
+    showNote("<b>The first build is still running.</b> GitHub builds the app a few minutes after the files are uploaded. Refresh in a moment.");
     return;
   }
-  if(isMobile) showNote("Heads-up: this runs on <b>Windows PCs</b>. Grab it on your computer.");
-  else if(!isWindows) showNote("Heads-up: this download is for <b>Windows</b>. On Mac or Linux, run it from the source with Python.");
+  if(isMobile) showNote("OG Checker runs on <b>Windows PCs</b>. Download it on your computer.");
+  else if(!isWindows) showNote("This download is for <b>Windows</b>. On Mac or Linux, run it from the source code with Python.");
 });
 
 if(R){
@@ -420,48 +359,22 @@ if(R){
       const asset = (rel.assets||[]).find(x => x.name === R.file);
       if(!asset) throw 404;
       ready = true;
+      const v = rel.tag_name.replace(/^v/i, "");
       const mb = (asset.size/1048576).toFixed(0);
-      const when = new Date(rel.published_at).toLocaleDateString(undefined,{month:"short",day:"numeric"});
-      document.querySelectorAll("[data-version]").forEach(s=> s.textContent = `${rel.tag_name} · ${mb} MB · ${when}`);
+      document.querySelectorAll("[data-tag]").forEach(s=> s.textContent = "v" + v);
+      document.querySelectorAll("[data-file]").forEach(s=> s.textContent = `${R.file}, version ${v}, ${mb} MB`);
+      document.querySelectorAll("[data-vershort]").forEach(s=> s.textContent = "Version " + v);
     })
     .catch(status => {
       if(status === 404){
         document.querySelectorAll("a.dl").forEach(a=> a.classList.add("wait"));
-        document.querySelectorAll("[data-version]").forEach(s=> s.textContent = "first build in progress…");
-      } else ready = true;  // API limit or offline: the direct link still works
+        document.querySelectorAll("[data-vershort]").forEach(s=> s.textContent = "Build in progress");
+      } else ready = true;  // GitHub API limit or offline: the direct link still works
     });
 }
 
-/* ---- fake live scanner in the hero (decoration) ---- */
-const FEED = [
-  ["MC","qex","open","og"],["DC","ember","open","open"],["MC","fire","taken","taken"],["RB","vyra","open","og"],
-  ["TT","glade","open","open"],["MC","jet","drops ~11d","drop"],["GH","zek","open","og"],["DC","nova","taken","taken"],
-  ["MC","x9k","open","og"],["RB","wolfz","open","open"],["TT","king","taken","taken"],["MC","kyra","open","og"],
-  ["DC","talon","open","open"],["MC","imp","drops ~3d","drop"],["RB","ace","taken","taken"],["GH","oryx","open","og"],
-  ["TT","k1k1","open","open"],["MC","sky","taken","taken"],["DC","zion","open","og"],["MC","pixl","open","open"],
-];
-const cls = n => { const L=n.length; return /^[a-z]+$/.test(n) ? L+"L" : /^[0-9]+$/.test(n) ? L+"N" : L+"C"; };
-const term = document.getElementById("term");
-let fi = 0, count = 13840, ogs = 0;
-const tCount = document.getElementById("tCount"), tOg = document.getElementById("tOg");
-function line(){
-  const [pf,nm,st,kind] = FEED[fi++ % FEED.length];
-  const el = document.createElement("div");
-  el.className = "ln " + kind;
-  el.innerHTML = `<span class="pf">[${pf}]</span><span class="nm">${nm}</span><span class="cl">${kind==="og"?"OG ":""}${cls(nm)}</span><span class="st">${st.toUpperCase()}</span>`;
-  term.prepend(el);
-  while(term.children.length > 14) term.lastChild.remove();
-  count += 37 + Math.floor(Math.random()*30); if(kind==="og") ogs++;
-  tCount.textContent = count.toLocaleString(); tOg.textContent = ogs;
-}
-for(let i=0;i<12;i++) line();
-if(!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(line, 900);
-
-/* reveal + nav */
-const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold:.12});
-document.querySelectorAll(".reveal:not(.in)").forEach(el => io.observe(el));
-const nav = document.getElementById("nav");
-addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 8), {passive:true});
+const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold:.1});
+document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 </script>
 </body>
 </html>

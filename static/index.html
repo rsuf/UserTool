@@ -8,327 +8,337 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#07070b; --panel:#0e0e15; --panel2:#15151f; --line:#1f1f2c; --line2:#2c2c3d;
-  --text:#ecebf5; --muted:#9592ab; --dim:#5f5c75;
-  --accent:#9d6bff; --accent2:#ff4fd8; --accent-ink:#ffffff; --accent-soft:rgba(157,107,255,.14);
-  --green:#3ddc84; --green-soft:rgba(61,220,132,.12);
-  --cyan:#4de1ff; --cyan-soft:rgba(77,225,255,.12);
-  --gold:#f5c04a; --gold-soft:rgba(245,192,74,.12);
-  --violet:#b48cff; --violet-soft:rgba(180,140,255,.12);
-  --red:#ff6b6b; --red-soft:rgba(255,107,107,.10);
-  --blue:#5eb2ff;
-  --radius:14px; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --bg:#0a0a0a; --surface:#0f0f0f; --surface2:#151515; --hover:#1a1a1a;
+  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.14); --border3:rgba(255,255,255,.24);
+  --text:#fafafa; --muted:#a3a3a3; --dim:#6e6e6e; --faint:#3a3a3a;
+  --ok:#22c55e; --warn:#eab308;
+  --sans:Inter,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono","Cascadia Mono",Consolas,ui-monospace,monospace;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:radial-gradient(900px 500px at 85% -10%,rgba(157,107,255,.10),transparent 60%),radial-gradient(700px 400px at 100% 100%,rgba(255,79,216,.05),transparent 60%),var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
-.app{display:grid;grid-template-columns:380px 1fr;height:100vh}
+body{background:var(--bg);color:var(--text);font:13.5px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none}
+input{user-select:text}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:1px solid var(--border3);outline-offset:2px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#262626;border-radius:10px;border:3px solid var(--bg)}
+::-webkit-scrollbar-track{background:transparent}
 
-/* ---------- sidebar ---------- */
-aside{background:rgba(14,14,21,.85);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.brand{display:flex;align-items:center;gap:10px;padding:18px 20px 14px}
-.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff;font-weight:700;font-family:var(--mono);font-size:13px;letter-spacing:-.04em;box-shadow:0 0 20px -4px rgba(157,107,255,.7)}
-.brand h1{font-family:var(--mono);letter-spacing:-.03em}
-.brand h1 em{font-style:normal;color:var(--accent)}
-.brand h1{font-size:16px;margin:0;font-weight:700;letter-spacing:-.01em}
-.brand p{margin:0;color:var(--muted);font-size:12px}
-.scroll{flex:1;overflow-y:auto;padding:4px 20px 20px}
-.section{margin-top:18px}
-.label{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-family:var(--mono)}
-.label::before{content:"// ";color:var(--accent);opacity:.8}
-.label{justify-content:flex-start;gap:0}
-.label small{margin-left:auto}
-.label small{text-transform:none;letter-spacing:0;font-weight:500;color:var(--dim)}
+.app{display:grid;grid-template-rows:52px 1fr;height:100vh;
+  background:radial-gradient(900px 340px at 50% -120px,rgba(255,255,255,.06),transparent 70%),var(--bg)}
 
-.platforms{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.plat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--muted);transition:.15s}
-.plat:hover{border-color:var(--line2);color:var(--text)}
-.plat .mono{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff}
-.plat.on{border-color:var(--accent);color:var(--text);background:var(--accent-soft)}
-.plat .speed{font-size:10.5px;color:var(--dim);font-weight:500}
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--border)}
+.wordmark{font-weight:700;font-size:15px;letter-spacing:-.02em}
+.top-right{display:flex;align-items:center;gap:12px}
+.status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--faint);flex:none}
+.status.run .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.status.warn .dot{background:var(--warn);box-shadow:0 0 0 3px rgba(234,179,8,.15)}
+.status.done .dot{background:var(--text)}
+.chip-ver{font-size:11.5px;color:var(--muted);border:1px solid var(--border2);border-radius:7px;padding:3px 8px;background:var(--surface)}
 
-.note{margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--muted)}
-.note summary{cursor:pointer;color:var(--text);font-weight:500;list-style:none;display:flex;justify-content:space-between}
-.note summary::-webkit-details-marker{display:none}
-.note summary::after{content:"+";color:var(--dim)}
-.note[open] summary::after{content:"–"}
-.note p{margin:8px 0 0}
+.body{display:grid;grid-template-columns:304px 1fr;min-height:0}
 
-.modes{display:flex;flex-direction:column;gap:6px}
-.mode{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:.15s}
-.mode:hover{border-color:var(--line2)}
-.mode .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--line2);margin-top:2px;flex:none;transition:.15s}
-.mode b{display:block;font-weight:600;font-size:13.5px}
-.mode span{color:var(--muted);font-size:12px}
-.mode.on{border-color:var(--accent);background:var(--accent-soft)}
-.mode.on .dot{border-color:var(--accent);background:radial-gradient(var(--accent) 45%,transparent 50%)}
+/* sidebar */
+aside{border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 20px 20px}
+.section{padding-top:20px}
+.label{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);font-weight:500;margin-bottom:9px}
+.label small{color:var(--dim);font-size:11.5px;font-weight:400}
 
-input[type=text],input[type=number]{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:10px;padding:9px 12px;outline:none;transition:.15s}
-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.kw{margin-top:8px;font-family:var(--mono)}
+.platforms{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.plat{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--muted);font-weight:500;transition:border-color .15s,color .15s,background .15s;text-align:left}
+.plat small{font-size:10.5px;color:var(--dim);font-weight:400}
+.plat:hover{border-color:var(--border2);color:var(--text)}
+.plat.on{border-color:var(--border3);background:var(--surface2);color:var(--text)}
+.plat.on small{color:var(--muted)}
 
-.range{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
-.step{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line2);border-radius:10px;overflow:hidden}
-.step button{background:none;border:0;width:34px;height:38px;color:var(--muted);font-size:17px}
-.step button:hover{color:var(--text);background:var(--panel2)}
-.step input{border:0;background:none;text-align:center;padding:0;width:100%;box-shadow:none;font-family:var(--mono);font-weight:600;font-size:15px;-moz-appearance:textfield}
+details.note{margin-top:8px;font-size:12px;color:var(--dim)}
+details.note summary{cursor:pointer;list-style:none;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+details.note summary::-webkit-details-marker{display:none}
+details.note summary svg{transition:transform .15s}
+details.note[open] summary svg{transform:rotate(90deg)}
+details.note p{margin:8px 0 0;line-height:1.55}
+
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px}
+.seg button{border-radius:6px;padding:6px 4px;font-size:12.5px;color:var(--muted);font-weight:500;transition:background .15s,color .15s}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--text);color:var(--bg)}
+.hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.5}
+
+.field-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 11px;outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--border3)}
+.kw{margin-top:8px;font-family:var(--mono);font-size:13px}
+
+.range{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.step{display:flex;align-items:center;border:1px solid var(--border);border-radius:9px;background:var(--surface)}
+.step button{width:32px;height:34px;color:var(--dim);font-size:16px;line-height:1}
+.step button:hover{color:var(--text)}
+.step input{flex:1;min-width:0;width:100%;border:0;background:none;text-align:center;font:600 14px var(--mono);outline:none;-moz-appearance:textfield}
 .step input::-webkit-inner-spin-button{display:none}
-.range .to{color:var(--dim);font-size:12px}
-.estimate{margin-top:8px;font-size:12px;color:var(--dim)}
-.estimate b{color:var(--muted);font-weight:600}
+.estimate{font-size:12px;color:var(--dim);margin-top:9px;line-height:1.5}
+.estimate b{color:var(--muted);font-weight:500}
 
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;transition:.15s}
-.chip code{font-family:var(--mono);color:var(--text);font-size:12px}
-.chip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
-.chip.fixed{cursor:default;opacity:.8}
-.chip:disabled{opacity:.35;cursor:not-allowed}
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.tog{border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);display:flex;gap:7px;align-items:center;transition:.15s}
+.tog code{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+.tog:hover{border-color:var(--border2);color:var(--text)}
+.tog.on{border-color:var(--border3);background:var(--surface2);color:var(--text)}
+.tog.on code{color:var(--text)}
+.tog.fixed{cursor:default;color:var(--dim)}
+.tog:disabled{opacity:.35;cursor:not-allowed}
 
-.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg);border:1px solid var(--line2);border-radius:10px;padding:3px}
-.seg button{background:none;border:0;border-radius:7px;padding:7px 4px;font-size:12.5px;color:var(--muted);font-weight:500}
-.seg button.on{background:var(--panel2);color:var(--text);box-shadow:0 1px 0 var(--line2) inset}
-.hint{font-size:12px;color:var(--dim);margin-top:6px}
-
-details.adv{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-details.adv summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;list-style:none}
+details.adv{margin-top:22px;border-top:1px solid var(--border);padding-top:16px}
+details.adv summary{cursor:pointer;list-style:none;font-size:12px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:6px}
 details.adv summary::-webkit-details-marker{display:none}
-details.adv summary::before{content:"▸ ";color:var(--dim)}
-details.adv[open] summary::before{content:"▾ "}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
-.toggle{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:13px}
-.switch{width:38px;height:22px;border-radius:999px;background:var(--line2);border:0;position:relative;transition:.15s;flex:none}
-.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
-.switch.on{background:var(--accent)}
-.switch.on::after{left:19px}
-.linkbtn{background:none;border:0;color:var(--muted);font-size:12.5px;padding:0;margin-top:12px;text-decoration:underline;text-underline-offset:3px}
-.linkbtn:hover{color:var(--red)}
+details.adv summary svg{transition:transform .15s}
+details.adv[open] summary svg{transform:rotate(90deg)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:12px}
+.grid2 .wide{grid-column:span 2}
+.field label{display:block;font-size:11.5px;color:var(--dim);margin-bottom:5px}
+.switch-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12.5px;color:var(--muted)}
+.switch{width:32px;height:18px;border-radius:999px;background:var(--faint);position:relative;transition:background .15s;flex:none}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:.15s}
+.switch.on{background:var(--text)}
+.switch.on::after{left:16px;background:var(--bg)}
+.textbtn{margin-top:14px;font-size:12px;color:var(--dim);text-decoration:underline;text-underline-offset:3px}
+.textbtn:hover{color:var(--text)}
 
-.go{padding:16px 20px;border-top:1px solid var(--line);background:var(--panel)}
-.btn-main{width:100%;border:0;border-radius:12px;padding:13px;font-weight:700;font-size:15px;background:linear-gradient(135deg,var(--accent),#7b4bff 60%,var(--accent2));color:#fff;box-shadow:0 8px 30px -8px rgba(157,107,255,.7);font-family:var(--mono);letter-spacing:.02em;text-transform:uppercase;display:flex;justify-content:center;align-items:center;gap:8px;transition:.15s}
-.btn-main:hover{filter:brightness(1.08)}
-.btn-main.stop{background:var(--red);color:#2a0606;box-shadow:0 8px 30px -8px rgba(255,107,107,.6)}
-.btn-main:disabled{opacity:.5;cursor:default}
-.go .kbd{font-size:11px;color:var(--dim);text-align:center;margin-top:7px}
-.quit{background:none;border:0;padding:0;color:var(--dim);font-size:11px;text-decoration:underline;text-underline-offset:2px}
-.quit:hover{color:var(--red)}
+.go{padding:16px 20px 18px;border-top:1px solid var(--border)}
+.primary{width:100%;height:42px;border-radius:10px;background:var(--text);color:var(--bg);font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:9px;transition:opacity .15s,background .15s,color .15s;box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 8px 24px -12px rgba(255,255,255,.35)}
+.primary:hover{opacity:.9}
+.primary.stop{background:transparent;color:var(--text);border:1px solid var(--border3);box-shadow:none}
+.primary:disabled{opacity:.5;cursor:default}
+.go .foot{display:flex;justify-content:center;gap:10px;margin-top:10px;font-size:11.5px;color:var(--dim)}
+.go .foot button{color:var(--dim);text-decoration:underline;text-underline-offset:2px;font-size:11.5px}
+.go .foot button:hover{color:var(--text)}
+kbd{font:500 10.5px var(--sans);border:1px solid var(--border2);border-radius:4px;padding:0 4px;color:var(--muted)}
 
-/* ---------- main ---------- */
-main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:20px 24px;gap:16px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.top h2{margin:0;font-size:20px;letter-spacing:-.02em}
-.top h2 span{color:var(--muted);font-weight:500}
-.pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted);max-width:60%}
-.pill i{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
-.pill.run i{background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:pulse 1.6s infinite}
-.pill.warn i{background:var(--gold)}
-.pill.done i{background:var(--blue)}
-.pill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(157,107,255,.6)}70%{box-shadow:0 0 0 8px rgba(157,107,255,0)}100%{box-shadow:0 0 0 0 rgba(157,107,255,0)}}
+/* main */
+main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:22px 24px 20px;gap:14px}
+.headline{display:flex;align-items:baseline;gap:10px}
+.headline h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.025em}
+.headline span{color:var(--dim);font-size:14px}
 
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
-.stat .k{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.stat .k i{width:7px;height:7px;border-radius:2px}
-.stat .k{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
-.stat .v{font-size:24px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;margin-top:2px}
-.progress{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
-.bar{height:8px;background:var(--bg);border-radius:999px;overflow:hidden}
-.bar div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(157,107,255,.6);border-radius:999px;transition:width .3s}
-.pmeta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:8px;gap:12px;flex-wrap:wrap}
-.pmeta b{color:var(--text);font-weight:600}
-.notice{background:var(--gold-soft);border:1px solid rgba(245,192,74,.35);color:#f8d98c;border-radius:12px;padding:10px 14px;font-size:13px;display:none}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.stat{padding:13px 16px}
+.stat + .stat{border-left:1px solid var(--border)}
+.stat .k{font-size:11.5px;color:var(--dim)}
+.stat .v{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.progress{display:flex;flex-direction:column;gap:8px}
+.bar{height:2px;background:var(--faint);border-radius:2px;overflow:hidden}
+.bar div{height:100%;width:0;background:var(--text);transition:width .3s}
+.pmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.pmeta b{color:var(--muted);font-weight:500}
+.notice{display:none;align-items:center;gap:10px;border:1px solid var(--border2);border-radius:10px;padding:10px 14px;font-size:12.5px;color:var(--muted);background:var(--surface)}
+.notice .dot{background:var(--warn)}
 
-.results{flex:1;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column}
-.tabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
-.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;color:var(--muted);font-weight:500;display:flex;gap:8px;align-items:center;white-space:nowrap}
-.tab .n{font-family:var(--mono);font-size:11.5px;background:var(--panel2);border-radius:999px;padding:1px 8px;color:var(--muted)}
-.tab.on{color:var(--text);border-bottom-color:var(--tc)}
-.tab.on .n{background:var(--tcs);color:var(--tc)}
-.toolbar{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:center}
-.search{position:relative;flex:1;max-width:320px}
-.search input{padding-left:32px}
+.results{flex:1;min-height:0;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:flex;flex-direction:column}
+.tabs{display:flex;gap:22px;padding:0 16px;border-bottom:1px solid var(--border)}
+.tab{position:relative;padding:12px 0 11px;color:var(--dim);font-weight:500;display:flex;gap:7px;align-items:center;font-size:13px;transition:color .15s}
+.tab:hover{color:var(--muted)}
+.tab .n{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.tab.on{color:var(--text)}
+.tab.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--text)}
+.tab.on .n{color:var(--muted)}
+.toolbar{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);align-items:center}
+.search{position:relative;flex:1;max-width:280px}
 .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dim)}
-.tb{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center;white-space:nowrap}
-.tb:hover{color:var(--text);border-color:var(--line2)}
+.search input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px 6px 30px;outline:none;font-size:12.5px}
+.search input:focus{border-color:var(--border3)}
+.btn{border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;transition:.15s;white-space:nowrap}
+.btn:hover{border-color:var(--border2);color:var(--text)}
+.btn.on{border-color:var(--border3);background:var(--surface2);color:var(--text)}
 .spacer{flex:1}
-.list{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;align-content:start}
-.name{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;transition:.12s;position:relative;min-width:0}
-.name:hover{border-color:var(--c);transform:translateY(-1px)}
-.name .t{font-family:var(--mono);font-weight:600;font-size:14.5px;color:var(--c);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.name .s{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.name .copy{position:absolute;right:10px;top:10px;opacity:0;color:var(--muted);transition:.12s}
-.name:hover .copy{opacity:1}
-.tier{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;margin-right:5px;background:var(--gold-soft);color:var(--gold);font-family:var(--mono)}
-.badge{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;margin-right:5px;font-family:var(--mono);background:var(--panel);border:1px solid var(--line2);color:var(--muted)}
-.badge.og{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 0 10px -2px rgba(255,79,216,.6)}
-.name.isog{border-color:rgba(157,107,255,.45);background:linear-gradient(180deg,rgba(157,107,255,.10),var(--panel2))}
-.name.isog .t{text-shadow:0 0 10px rgba(245,192,74,.35)}
-.ogtoggle.on{border-color:var(--accent);color:var(--text);background:var(--accent-soft)}
-.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:56px 20px}
-.empty .big{font-size:34px;margin-bottom:6px}
-.empty b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
-.more{grid-column:1/-1;text-align:center;color:var(--dim);font-size:12.5px;padding:8px}
 
-.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:10px;font-weight:600;font-size:13px;opacity:0;pointer-events:none;transition:.2s}
+.list{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;align-content:start}
+.name{display:flex;flex-direction:column;gap:5px;align-items:flex-start;text-align:left;border:1px solid var(--border);border-radius:9px;padding:10px 12px;background:var(--bg);transition:border-color .12s,background .12s;min-width:0;position:relative}
+.name:hover{border-color:var(--border2);background:var(--hover)}
+.name .t{font:600 14px var(--mono);letter-spacing:-.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name .s{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);max-width:100%;overflow:hidden;white-space:nowrap}
+.name .s em{font-style:normal;overflow:hidden;text-overflow:ellipsis}
+.name .cp{position:absolute;right:10px;top:11px;opacity:0;color:var(--dim);transition:opacity .12s}
+.name:hover .cp{opacity:1}
+.name.og{border-color:var(--border2)}
+.name.taken .t{color:var(--dim);font-weight:500}
+.tag{flex:none;font:600 10px/1 var(--mono);border:1px solid var(--border2);border-radius:4px;padding:3px 5px;color:var(--muted)}
+.tag.og{background:var(--text);border-color:var(--text);color:var(--bg)}
+.tag.tier{border-color:var(--border);color:var(--dim)}
+.empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:64px 20px;color:var(--dim);font-size:12.5px;line-height:1.6}
+.empty .ic{width:40px;height:40px;border:1px solid var(--border2);border-radius:10px;display:grid;place-items:center;color:var(--muted);margin-bottom:14px;background:var(--surface2)}
+.empty b{color:var(--text);font-size:14px;font-weight:600;margin-bottom:4px}
+.empty p{margin:0;max-width:380px}
+.more{grid-column:1/-1;text-align:center;color:var(--dim);font-size:12px;padding:10px}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:9px;font-weight:500;font-size:12.5px;opacity:0;pointer-events:none;transition:.18s;box-shadow:0 10px 30px -10px rgba(0,0,0,.8)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.offline{position:fixed;inset:0;background:rgba(8,10,14,.85);display:none;place-items:center;z-index:9;text-align:center;padding:20px}
-.offline div{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:24px 28px;max-width:420px}
-.offline b{font-size:16px;display:block;margin-bottom:6px}
-.offline p{color:var(--muted);margin:0}
+.overlay{position:fixed;inset:0;background:rgba(10,10,10,.92);display:none;place-items:center;z-index:9;text-align:center;padding:20px}
+.overlay div{border:1px solid var(--border2);border-radius:14px;padding:26px 30px;max-width:400px;background:var(--surface)}
+.overlay b{display:block;font-size:15px;margin-bottom:6px}
+.overlay p{color:var(--muted);margin:0;font-size:13px}
 
-@media (max-width:980px){
-  .app{grid-template-columns:1fr;height:auto}
-  aside{border-right:0;border-bottom:1px solid var(--line)}
-  .scroll{overflow:visible}
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{height:auto;min-height:100vh}
+  .body{grid-template-columns:1fr}
+  aside{border-right:0;border-bottom:1px solid var(--border)}
   .stats{grid-template-columns:repeat(3,1fr)}
+  .stat:nth-child(4){border-left:0}
+  .stat:nth-child(n+4){border-top:1px solid var(--border)}
   .results{min-height:520px}
-}
-@media (max-width:560px){
-  main{padding:16px}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .toolbar{flex-wrap:wrap}
-  .search{max-width:none;flex-basis:100%}
 }
 </style>
 </head>
 <body>
 <div class="app">
-  <aside>
-    <div class="brand">
-      <div class="logo">OG</div>
-      <div><h1>og<em>//</em>checker</h1><p>Find OG &amp; rare handles before anyone else</p></div>
+  <header class="topbar">
+    <div class="wordmark">OG Checker.</div>
+    <div class="top-right">
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">Ready</span></div>
+      <span class="chip-ver" id="platChip">Minecraft</span>
     </div>
+  </header>
 
-    <div class="scroll">
-      <div class="section">
-        <div class="label">Platform</div>
-        <div class="platforms" id="platforms"></div>
-        <details class="note" id="noteBox"><summary>How this platform is checked</summary><p id="note"></p></details>
-      </div>
-
-      <div class="section">
-        <div class="label">What to search</div>
-        <div class="modes" id="modes">
-          <button class="mode" data-mode="words"><i class="dot"></i><div><b>Dictionary words</b><span>Only real words. The fastest way to find clean, rare handles.</span></div></button>
-          <button class="mode" data-mode="brute"><i class="dot"></i><div><b>Every combo</b><span>Random 3L, 4L or 4C combos at the length you pick. Best for OG hunting.</span></div></button>
-          <button class="mode" data-mode="keyword"><i class="dot"></i><div><b>Keyword</b><span>Every free spin on your name, like <code>1wolf</code>, <code>wolfx</code>, <code>x.wolf</code>.</span></div></button>
+  <div class="body">
+    <aside>
+      <div class="scroll">
+        <div class="section">
+          <div class="label">Platform</div>
+          <div class="platforms" id="platforms"></div>
+          <details class="note"><summary><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>How this platform is checked</summary><p id="note"></p></details>
         </div>
-        <input class="kw" id="keyword" type="text" placeholder="Type a keyword, e.g. wolf" autocomplete="off" spellcheck="false" hidden>
-      </div>
 
-      <div class="section">
-        <div class="label">Name length <small id="lenHint"></small></div>
-        <div class="range">
-          <div class="step"><button data-step="min,-1" aria-label="Shorter minimum">−</button><input id="minLen" type="number" aria-label="Minimum length"><button data-step="min,1" aria-label="Longer minimum">+</button></div>
-          <span class="to">to</span>
-          <div class="step"><button data-step="max,-1" aria-label="Shorter maximum">−</button><input id="maxLen" type="number" aria-label="Maximum length"><button data-step="max,1" aria-label="Longer maximum">+</button></div>
+        <div class="section">
+          <div class="label">Search</div>
+          <div class="seg" id="modes">
+            <button data-mode="words">Words</button>
+            <button data-mode="brute">Combos</button>
+            <button data-mode="keyword">Keyword</button>
+          </div>
+          <div class="hint" id="modeHint"></div>
+          <input class="field-input kw" id="keyword" type="text" placeholder="Keyword, e.g. wolf" autocomplete="off" spellcheck="false" hidden>
         </div>
-        <div class="estimate" id="estimate"></div>
-      </div>
 
-      <div class="section" id="charSection">
-        <div class="label">Characters</div>
-        <div class="chips">
-          <span class="chip on fixed"><code>a–z</code></span>
-          <button class="chip" data-char="digits"><code>0–9</code> Numbers</button>
-          <button class="chip" data-char="underscore"><code>_</code> Underscore</button>
-          <button class="chip" data-char="periods"><code>.</code> Period</button>
-          <button class="chip" data-char="hyphens"><code>-</code> Hyphen</button>
+        <div class="section">
+          <div class="label">Length <small id="lenHint"></small></div>
+          <div class="range">
+            <div class="step"><button data-step="min,-1" aria-label="Shorter minimum">&minus;</button><input id="minLen" type="number" aria-label="Minimum length"><button data-step="min,1" aria-label="Longer minimum">+</button></div>
+            <div class="step"><button data-step="max,-1" aria-label="Shorter maximum">&minus;</button><input id="maxLen" type="number" aria-label="Maximum length"><button data-step="max,1" aria-label="Longer maximum">+</button></div>
+          </div>
+          <div class="estimate" id="estimate"></div>
         </div>
-      </div>
 
-      <div class="section">
-        <div class="label">Rare filter</div>
-        <div class="seg" id="rareSeg">
-          <button data-rare="strict">Strict</button>
-          <button data-rare="normal">Normal</button>
-          <button data-rare="loose">Loose</button>
+        <div class="section" id="charSection">
+          <div class="label">Characters</div>
+          <div class="toggles">
+            <span class="tog fixed"><code>a-z</code></span>
+            <button class="tog" data-char="digits"><code>0-9</code>Numbers</button>
+            <button class="tog" data-char="underscore"><code>_</code>Underscore</button>
+            <button class="tog" data-char="periods"><code>.</code>Period</button>
+            <button class="tog" data-char="hyphens"><code>-</code>Hyphen</button>
+          </div>
         </div>
-        <div class="hint" id="rareHint"></div>
-      </div>
 
-      <details class="adv">
-        <summary>Advanced</summary>
-        <div class="grid2">
-          <div class="field"><label for="limit">Max names to check <span id="limitHint"></span></label><input id="limit" type="number" min="1" step="500"></div>
-          <div class="field"><label for="threads">Threads</label><input id="threads" type="number" min="1" max="32"></div>
-          <div class="field"><label for="delay">Delay per check (sec)</label><input id="delay" type="number" min="0" max="120" step="0.5"></div>
+        <div class="section">
+          <div class="label">Rare filter</div>
+          <div class="seg" id="rareSeg">
+            <button data-rare="strict">Strict</button>
+            <button data-rare="normal">Normal</button>
+            <button data-rare="loose">Loose</button>
+          </div>
+          <div class="hint" id="rareHint"></div>
         </div>
-        <div class="toggle"><span>Random order</span><button class="switch" id="random" aria-label="Random order"></button></div>
-        <button class="linkbtn" id="resetHist">Reset Minecraft drop history</button>
-      </details>
-    </div>
 
-    <div class="go">
-      <button class="btn-main" id="goBtn">Start checking</button>
-      <div class="kbd">Ctrl + Enter to start or stop<span id="quitWrap"> · <button class="quit" id="quitBtn">Quit app</button></span></div>
-    </div>
-  </aside>
-
-  <main>
-    <div class="top">
-      <h2 id="title">Minecraft <span>usernames</span></h2>
-      <div class="pill" id="pill"><i></i><span id="statusText">Ready</span></div>
-    </div>
-
-    <div class="stats">
-      <div class="stat"><div class="k"><i style="background:var(--muted)"></i>Checked</div><div class="v" id="sChecked">0</div></div>
-      <div class="stat"><div class="k"><i style="background:var(--green)"></i>Available</div><div class="v" id="sAvail">0</div></div>
-      <div class="stat"><div class="k"><i style="background:var(--gold)"></i>OG &amp; rare</div><div class="v" id="sRare">0</div></div>
-      <div class="stat"><div class="k"><i style="background:var(--red)"></i>Taken</div><div class="v" id="sTaken">0</div></div>
-      <div class="stat"><div class="k"><i style="background:var(--dim)"></i>Unknown</div><div class="v" id="sSkipped">0</div></div>
-    </div>
-
-    <div class="progress">
-      <div class="bar"><div id="bar"></div></div>
-      <div class="pmeta"><span id="pCount">Not started</span><span id="pSpeed"></span></div>
-    </div>
-    <div class="notice" id="notice"></div>
-
-    <div class="results">
-      <div class="tabs" id="tabs"></div>
-      <div class="toolbar">
-        <label class="search">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input id="filter" type="text" placeholder="Filter names…" autocomplete="off" spellcheck="false">
-        </label>
-        <button class="tb ogtoggle" id="ogOnly" title="Only 3-character names and 4-letter names">OG only</button>
-        <span class="spacer"></span>
-        <button class="tb" id="copyAll">Copy all</button>
-        <button class="tb" id="download">Download .txt</button>
-        <button class="tb" id="clearBtn">Clear</button>
+        <details class="adv">
+          <summary><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>Advanced</summary>
+          <div class="grid2">
+            <div class="field wide"><label for="limit">Max names to check <span id="limitHint"></span></label><input class="field-input" id="limit" type="number" min="1" step="500"></div>
+            <div class="field"><label for="threads">Threads</label><input class="field-input" id="threads" type="number" min="1" max="32"></div>
+            <div class="field"><label for="delay">Delay (sec)</label><input class="field-input" id="delay" type="number" min="0" max="120" step="0.5"></div>
+          </div>
+          <div class="switch-row"><span>Random order</span><button class="switch" id="random" aria-label="Random order"></button></div>
+          <button class="textbtn" id="resetHist">Reset Minecraft drop history</button>
+        </details>
       </div>
-      <div class="list" id="list"></div>
-    </div>
-  </main>
+
+      <div class="go">
+        <button class="primary" id="goBtn">Start checking</button>
+        <div class="foot"><span><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span><span id="quitWrap">&middot; <button id="quitBtn">Quit</button></span></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="headline"><h1 id="title">Minecraft</h1><span id="subtitle">usernames</span></div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">Checked</div><div class="v" id="sChecked">0</div></div>
+        <div class="stat"><div class="k">Available</div><div class="v" id="sAvail">0</div></div>
+        <div class="stat"><div class="k">OG &amp; rare</div><div class="v" id="sRare">0</div></div>
+        <div class="stat"><div class="k">Taken</div><div class="v" id="sTaken">0</div></div>
+        <div class="stat"><div class="k">Unknown</div><div class="v" id="sSkipped">0</div></div>
+      </div>
+
+      <div class="progress">
+        <div class="bar"><div id="bar"></div></div>
+        <div class="pmeta"><span id="pCount">Not started</span><span id="pSpeed"></span></div>
+      </div>
+      <div class="notice" id="notice"><span class="dot"></span><span id="noticeText"></span></div>
+
+      <div class="results">
+        <div class="tabs" id="tabs"></div>
+        <div class="toolbar">
+          <label class="search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="filter" type="text" placeholder="Filter names" autocomplete="off" spellcheck="false">
+          </label>
+          <button class="btn" id="ogOnly" title="Only 3-character names and 4-letter names">OG only</button>
+          <span class="spacer"></span>
+          <button class="btn" id="copyAll">Copy all</button>
+          <button class="btn" id="download">Export</button>
+          <button class="btn" id="clearBtn">Clear</button>
+        </div>
+        <div class="list" id="list"></div>
+      </div>
+    </main>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="offline" id="offline"><div><b>Can't reach the checker</b><p id="offlineMsg">The program window was closed. Start it again with <code>start.bat</code> (or <code>python server.py</code>) and this page will reconnect.</p></div></div>
+<div class="overlay" id="offline"><div><b id="offlineTitle">Can't reach the checker</b><p id="offlineMsg">The checker stopped running. Open OG Checker again and this page will reconnect.</p></div></div>
 
 <script>
 const $ = s => document.querySelector(s);
-const PLAT_STYLE = {
-  Minecraft:{c:"#5ba83a",m:"M"}, Roblox:{c:"#e2231a",m:"R"}, TikTok:{c:"#25262b",m:"T",b:"#fe2c55"},
-  GitHub:{c:"#6e7681",m:"G"}, Discord:{c:"#5865f2",m:"D"}, Instagram:{c:"#d62976",m:"I"},
-};
+const IN_APP = new URLSearchParams(location.search).has("app");
 const TABS = [
-  {id:"rare", title:"OG & rare", c:"var(--gold)", cs:"var(--gold-soft)"},
-  {id:"avail", title:"Available", c:"var(--green)", cs:"var(--green-soft)"},
-  {id:"locked", title:"Drops", c:"var(--cyan)", cs:"var(--cyan-soft)", mc:true},
-  {id:"taken", title:"Taken", c:"var(--red)", cs:"var(--red-soft)"},
+  {id:"rare", title:"OG & rare"},
+  {id:"avail", title:"Available"},
+  {id:"locked", title:"Drops", mc:true},
+  {id:"taken", title:"Taken"},
 ];
-const RARE_HINT = {
-  strict:"OGs plus dictionary words and two-word combos (fire, firewolf).",
-  normal:"Words, word-like names (wolfz), and cool patterns (abba, abcd).",
-  loose:"Everything above plus any pronounceable name (velmora).",
+const MODE_HINT = {
+  words:"Real dictionary words only. The fastest way to find clean, rare names.",
+  brute:"Random 3L, 4L or 4C combinations at the length you pick. Best for OG hunting.",
+  keyword:"Every free variation of your word, like 1wolf, wolfx or x.wolf.",
 };
-const TIER_NAME = {1:"dictionary",2:"2 words",3:"word+",4:"semi",5:"clean",6:"sayable"};
-// OG-scene name classes: 3L = 3 letters, 4C = 4 mixed characters, 4N = 4 numbers
+const RARE_HINT = {
+  strict:"OGs, dictionary words and two-word combos.",
+  normal:"Adds word-like names (wolfz) and clean patterns (abba, abcd).",
+  loose:"Adds anything pronounceable (velmora).",
+};
+const TIER_NAME = {1:"word",2:"2 words",3:"word+",4:"semi",5:"pattern",6:"sayable"};
+// Name classes: 3L = 3 letters, 4C = 4 mixed characters, 4N = 4 numbers
 function cls(n){ const L=n.length; return /^[a-z]+$/.test(n) ? L+"L" : /^[0-9]+$/.test(n) ? L+"N" : L+"C"; }
 function isOG(n){ return n.length<=3 || (n.length===4 && /^[a-z]+$/.test(n)); }
+const ICON = {
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  star:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+  check:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  clock:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  x:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  copy:'<svg class="cp" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+};
 
 let CFG, S = load();
 let state = {runId:0, running:false, stats:{}, results:{rare:[],avail:[],locked:[],taken:[]}, total:0, platform:S.platform};
@@ -351,7 +361,7 @@ function api(path, body){
   const opts = body===undefined ? {headers} : {method:"POST", headers:{...headers, "Content-Type":"application/json"}, body:JSON.stringify(body)};
   return fetch(path, opts).then(r=>r.json());
 }
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1600); }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1700); }
 function spec(){ return CFG.platforms[S.platform]; }
 function pp(){
   const p = S.perPlat[S.platform] || (S.perPlat[S.platform] = {threads:spec().threads, delay:spec().delay});
@@ -359,12 +369,12 @@ function pp(){
   return p;
 }
 
-/* ---------- settings UI ---------- */
+/* ---------- settings ---------- */
 function buildPlatforms(){
   $("#platforms").innerHTML = Object.keys(CFG.platforms).map(p=>{
-    const st = PLAT_STYLE[p]||{c:"#555",m:p[0]}, sp = CFG.platforms[p];
-    const speed = sp.batch>1 ? "fast" : sp.delay>=5 ? "very slow" : "slow";
-    return `<button class="plat" data-plat="${p}"><span class="mono" style="background:${st.c};${st.b?`box-shadow:inset 0 -3px 0 ${st.b}`:""}">${st.m}</span>${p}<span class="speed">${speed}</span></button>`;
+    const sp = CFG.platforms[p];
+    const speed = sp.batch>1 ? "Fast" : sp.delay>=5 ? "Very slow" : "Slow";
+    return `<button class="plat" data-plat="${p}">${p}<small>${speed}</small></button>`;
   }).join("");
   document.querySelectorAll(".plat").forEach(b=>b.onclick=()=>{ if(state.running) return toast("Stop the current check first"); S.platform=b.dataset.plat; clampLen(); syncUI(); });
 }
@@ -376,11 +386,12 @@ function clampLen(){
 function syncUI(){
   const sp = spec(), p = pp();
   document.querySelectorAll(".plat").forEach(b=>b.classList.toggle("on", b.dataset.plat===S.platform));
-  document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("on", b.dataset.mode===S.mode));
+  document.querySelectorAll("#modes button").forEach(b=>b.classList.toggle("on", b.dataset.mode===S.mode));
+  $("#modeHint").textContent = MODE_HINT[S.mode];
   $("#keyword").hidden = S.mode!=="keyword";
   $("#keyword").value = S.keyword;
   $("#note").textContent = sp.note;
-  $("#lenHint").textContent = `${S.platform} allows ${sp.min}–${sp.max}`;
+  $("#lenHint").textContent = `${sp.min} to ${sp.max} allowed`;
   $("#minLen").value = S.minLen; $("#maxLen").value = S.maxLen;
   const allow = {digits:true, underscore:sp.underscore, periods:sp.periods, hyphens:sp.hyphens};
   document.querySelectorAll("[data-char]").forEach(b=>{
@@ -396,12 +407,13 @@ function syncUI(){
   $("#threads").value = p.threads; $("#delay").value = p.delay;
   if(CFG.public){ $("#threads").max = sp.threads; $("#delay").min = sp.delay; }
   $("#random").classList.toggle("on", S.random);
+  $("#platChip").textContent = S.platform;
   paintTitle();
-  document.title = `${S.platform} · OG Checker`;
+  document.title = `OG Checker`;
   estimate(); save();
 }
 function estimate(){
-  const sp = spec(), p = pp();
+  const p = pp();
   let pool, cs = 26 + (S.digits?10:0) + (S.underscore?1:0) + (S.periods?1:0) + (S.hyphens?1:0);
   if(S.mode==="words"){
     pool = null;
@@ -414,14 +426,14 @@ function estimate(){
   const n = pool===null ? Math.min(S.limit, S._words) : Math.min(S.limit, pool);
   const perSec = spec().batch>1 ? (spec().batch*p.threads)/Math.max(0.35, p.delay+0.35) : p.threads/Math.max(0.6, p.delay+0.6);
   const secs = n/perSec;
-  let txt = pool===null ? `<b>${fmt(S._words)}</b> words fit this length · checking <b>${fmt(n)}</b>` :
-            S.mode==="keyword" && !S.keyword ? "Type a keyword to see how many names it makes" :
-            `<b>${pool>1e12?"trillions of":fmt(pool)}</b> possible names · checking <b>${fmt(n)}</b>`;
-  if(!(S.mode==="keyword" && !S.keyword)) txt += ` · about <b>${dur(secs)}</b>`;
+  let txt = pool===null ? `<b>${fmt(S._words)}</b> words in range. Checking <b>${fmt(n)}</b>` :
+            S.mode==="keyword" && !S.keyword ? "Type a keyword to see how many names it makes." :
+            `<b>${pool>1e12?"Trillions of":fmt(pool)}</b> possible names. Checking <b>${fmt(n)}</b>`;
+  if(!(S.mode==="keyword" && !S.keyword)) txt += `, about <b>${dur(secs)}</b>.`;
   $("#estimate").innerHTML = txt;
 }
 function dur(s){
-  if(!isFinite(s)) return "–";
+  if(!isFinite(s)) return "-";
   if(s<60) return Math.max(1,Math.round(s))+"s";
   if(s<3600) return Math.round(s/60)+" min";
   if(s<86400) return (s/3600).toFixed(1).replace(".0","")+" hr";
@@ -429,7 +441,7 @@ function dur(s){
 }
 
 function wire(){
-  document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#modes button").forEach(b=>b.onclick=()=>{
     S.mode=b.dataset.mode; if(S.mode==="keyword"){ S.digits=true; setTimeout(()=>$("#keyword").focus()); } syncUI();
   });
   $("#keyword").oninput = e=>{ S.keyword=e.target.value.trim().toLowerCase(); estimate(); save(); };
@@ -494,7 +506,7 @@ async function poll(){
     Object.assign(state, {running:r.running, stats:r.stats, total:r.total, status:r.status, notice:r.notice, elapsed:r.elapsed, platform:r.platform});
     paintStats();
     if(wasRunning !== r.running) paintRunning();
-    if(wasRunning && !r.running && r.status==="Finished") toast(`Done · ${fmt(r.stats.avail)} available, ${fmt(r.stats.rare)} rare`);
+    if(wasRunning && !r.running && r.status==="Finished") toast(`Done. ${fmt(r.stats.avail)} available, ${fmt(r.stats.rare)} OG or rare`);
     if(changed) queueRender();
   }catch(e){
     if(online){ online=false; $("#offline").style.display="grid"; }
@@ -504,7 +516,8 @@ async function poll(){
 function paintTitle(){
   const has = Object.values(state.results).some(a=>a.length);
   const other = has && state.platform && state.platform!==S.platform;
-  $("#title").innerHTML = other ? `${state.platform} <span>results · next run: ${S.platform}</span>` : `${S.platform} <span>usernames</span>`;
+  $("#title").textContent = other ? state.platform : S.platform;
+  $("#subtitle").textContent = other ? `results. Next run: ${S.platform}` : "usernames";
 }
 function paintRunning(){
   const b = $("#goBtn");
@@ -523,23 +536,24 @@ function paintStats(){
   const pct = tot ? Math.min(100, done/tot*100) : 0;
   $("#bar").style.width = pct+"%";
   const rate = state.elapsed>1 ? done/state.elapsed : 0;
-  $("#pCount").innerHTML = tot ? `<b>${fmt(done)}</b> of ${fmt(tot)} checked · ${pct.toFixed(pct<10?1:0)}%` : "Not started";
+  $("#pCount").innerHTML = tot ? `<b>${fmt(done)}</b> of ${fmt(tot)} checked, ${pct.toFixed(pct<10?1:0)}%` : "Not started";
   $("#pSpeed").innerHTML = !tot ? "" : state.running
-      ? (rate>0 ? `${rate>=1?rate.toFixed(0):rate.toFixed(2)} names/sec · ${dur((tot-done)/rate)} left` : "starting…")
-      : `took ${dur(state.elapsed)}`;
-  const pill = $("#pill"), st = state.status||"Ready";
-  pill.className = "pill " + (state.running ? (/limit|unknown|problem/i.test(st) ? "warn" : "run") : (/finish/i.test(st) ? "done" : /limit/i.test(st) ? "warn" : ""));
+      ? (rate>0 ? `${rate>=1?rate.toFixed(0):rate.toFixed(2)} names/sec, ${dur((tot-done)/rate)} left` : "Starting")
+      : `Took ${dur(state.elapsed)}`;
+  const st = state.status||"Ready";
+  $("#status").className = "status " + (state.running ? (/limit|unknown|problem/i.test(st) ? "warn" : "run") : (/finish/i.test(st) ? "done" : /limit/i.test(st) ? "warn" : ""));
   $("#statusText").textContent = st;
-  $("#notice").style.display = state.notice ? "block" : "none";
-  $("#notice").textContent = state.notice||"";
+  $("#notice").style.display = state.notice ? "flex" : "none";
+  $("#noticeText").textContent = state.notice||"";
   paintTabs(); paintTitle();
 }
 function paintTabs(){
   const s = state.stats||{};
   const counts = {rare:s.rare, avail:s.avail, locked:s.locked, taken:s.taken};
   const showLocked = state.platform==="Minecraft" || S.platform==="Minecraft";
+  if(!showLocked && tab==="locked") tab = "rare";
   $("#tabs").innerHTML = TABS.filter(t=>!t.mc || showLocked).map(t=>
-    `<button class="tab ${t.id===tab?"on":""}" data-tab="${t.id}" style="--tc:${t.c};--tcs:${t.cs}">${t.title}<span class="n">${fmt(counts[t.id]||0)}</span></button>`).join("");
+    `<button class="tab ${t.id===tab?"on":""}" data-tab="${t.id}">${t.title}<span class="n">${fmt(counts[t.id]||0)}</span></button>`).join("");
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{ tab=b.dataset.tab; paintTabs(); queueRender(); });
 }
 function queueRender(){ if(!renderQueued){ renderQueued=true; requestAnimationFrame(render); } }
@@ -554,29 +568,32 @@ function visible(){
 }
 function render(){
   renderQueued = false;
-  const t = TABS.find(x=>x.id===tab), items = visible(), list = $("#list");
-  list.style.setProperty("--c", t.c);
+  const items = visible(), list = $("#list");
   if(!items.length){ list.innerHTML = emptyState(); return; }
-  const shown = tab==="avail"||tab==="taken" ? items.slice(-LIMIT).reverse() : items.slice(0, LIMIT);
+  const newestFirst = tab==="avail"||tab==="taken";
+  const shown = newestFirst ? items.slice(-LIMIT).reverse() : items.slice(0, LIMIT);
   list.innerHTML = shown.map(i=>{
-    const og = tab!=="taken" && isOG(i.name);
-    const badges = `<span class="badge${og?" og":""}">${og?"OG ":""}${cls(i.name)}</span>`;
-    const sub = tab==="rare" ? badges + (TIER_NAME[i.tier] ? `<span class="tier">${TIER_NAME[i.tier]}</span>` : "") + (i.label==="word"?"":esc(i.label))
-              : tab==="taken" ? "" : badges + (i.label ? esc(i.label) : "");
-    return `<button class="name${og?" isog":""}" data-n="${esc(i.name)}" title="Click to copy"><span class="t">${esc(i.name)}</span>${sub?`<span class="s">${sub}</span>`:""}<svg class="copy" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>`;
-  }).join("") + (items.length>LIMIT ? `<div class="more">Showing ${fmt(LIMIT)} of ${fmt(items.length)}${tab==="avail"||tab==="taken"?" (newest first)":" (best first)"} · use the filter or Download to see all</div>` : "");
+    if(tab==="taken") return `<button class="name taken" data-n="${esc(i.name)}" title="Click to copy"><span class="t">${esc(i.name)}</span><span class="s">${cls(i.name)}</span>${ICON.copy}</button>`;
+    const og = isOG(i.name);
+    let meta = `<span class="tag${og?" og":""}">${og?"OG ":""}${cls(i.name)}</span>`;
+    const say = /^pronounceable/.test(i.label||"");
+    const tier = say ? "sayable" : TIER_NAME[i.tier];
+    if(tab==="rare" && tier) meta += `<span class="tag tier">${tier}</span>`;
+    const label = i.label && i.label!=="word" && i.label!=="pronounceable" ? `<em>${esc(i.label)}</em>` : "";
+    return `<button class="name${og?" og":""}" data-n="${esc(i.name)}" title="Click to copy"><span class="t">${esc(i.name)}</span><span class="s">${meta}${label}</span>${ICON.copy}</button>`;
+  }).join("") + (items.length>LIMIT ? `<div class="more">Showing ${fmt(LIMIT)} of ${fmt(items.length)}${newestFirst?", newest first":", best first"}. Use the filter or Export to see all.</div>` : "");
 }
 function emptyState(){
-  if($("#filter").value.trim()) return `<div class="empty"><div class="big">🔍</div><b>No matches</b>Nothing in this list contains that text.</div>`;
+  const box = (ic,t,p) => `<div class="empty"><div class="ic">${ic}</div><b>${t}</b><p>${p}</p></div>`;
+  if($("#filter").value.trim() || ogOnly) return box(ICON.search, "No matches", "Nothing in this list matches the current filter.");
   const checked = (state.stats||{}).checked||0;
-  const msg = {
-    rare: checked ? ["💎","No OG or rare names yet","OG = 3-character or 4-letter names. Rare = dictionary words, semi-OGs and clean patterns. Try Real words mode, or a 3–4 length range."]
-                  : ["💎","Ready to hunt","Pick a platform and hit Start. OG handles (3L, 3C, 4L) land on top, then dictionary words, semis and patterns."],
-    avail:["✅","No available names yet","Every name that's free to register shows up here."],
-    locked:["⏳","No drops tracked yet","Minecraft holds a released name for 37 days before it drops. Names this app saw taken that are now free show up here with an estimated drop window. The more you scan, the more drops it catches."],
-    taken:["⛔","No taken names yet","Names someone already owns show up here."],
+  return {
+    rare: checked ? box(ICON.star, "No OG or rare names yet", "OG means 3 characters or 4 letters. Rare means dictionary words, near-words and clean patterns. Try Words mode, or a length of 3 to 4.")
+                  : box(ICON.star, "Ready", "Pick a platform and press Start. OG names (3L, 3C, 4L) appear at the top, followed by dictionary words, near-words and patterns."),
+    avail: box(ICON.check, "No available names yet", "Every name that is free to register appears here."),
+    locked: box(ICON.clock, "No drops tracked yet", "Minecraft holds a released name for 37 days. Names this app saw taken that are now free appear here with an estimated drop window."),
+    taken: box(ICON.x, "No taken names yet", "Names someone already owns appear here."),
   }[tab];
-  return `<div class="empty"><div class="big">${msg[0]}</div><b>${msg[1]}</b>${msg[2]}</div>`;
 }
 function copy(text, msg){
   const done = ()=>toast(msg);
@@ -591,18 +608,23 @@ function copyAll(){
   const items = visible(); if(!items.length) return toast("Nothing to copy");
   copy(items.map(i=>i.name).join("\n"), `Copied ${fmt(items.length)} names`);
 }
-function download(){
+async function download(){
   const r = state.results;
   if(!Object.values(r).some(a=>a.length)) return toast("No results yet");
   const sec = (title, arr, f) => `=== ${title} (${arr.length}) ===\n` + arr.map(f).join("\n") + "\n\n";
-  const txt = `og//checker · ${state.platform} · ${new Date().toLocaleString()}\n\n`
-    + sec("OG & RARE", r.rare, i=>`${i.name}   [${isOG(i.name)?"OG ":""}${cls(i.name)}${i.label?" · "+i.label:""}]`)
+  const txt = `OG Checker - ${state.platform} - ${new Date().toLocaleString()}\n\n`
+    + sec("OG & RARE", r.rare, i=>`${i.name}   [${isOG(i.name)?"OG ":""}${cls(i.name)}${i.label?", "+i.label:""}]`)
     + sec("AVAILABLE", r.avail, i=>i.name)
     + (r.locked.length ? sec("UPCOMING DROPS", r.locked, i=>`${i.name}   [${i.label}]`) : "")
     + sec("TAKEN", r.taken, i=>i.name);
+  const name = `og-checker-${state.platform.toLowerCase()}.txt`;
+  if(window.pywebview && window.pywebview.api && window.pywebview.api.save_file){
+    try{ if(await window.pywebview.api.save_file(name, txt)) toast("Saved"); }catch(e){ toast("Couldn't save the file"); }
+    return;
+  }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([txt], {type:"text/plain"}));
-  a.download = `og-checker-${state.platform.toLowerCase()}.txt`; a.click();
+  a.download = name; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
@@ -611,19 +633,19 @@ function download(){
   try{ CFG = await api("/api/config"); }
   catch(e){ $("#offline").style.display="grid"; return; }
   if(!CFG.platforms[S.platform]) S.platform = Object.keys(CFG.platforms)[0];
-  if(CFG.app) $("#offlineMsg").textContent = "The app isn't running. Open OGChecker.exe again and this page will reconnect.";
-  $("#quitWrap").hidden = !!CFG.public;
+  // Inside the app window, closing the window quits; a Quit button is only needed in a browser tab
+  $("#quitWrap").hidden = IN_APP || !!CFG.public;
   $("#quitBtn").onclick = async ()=>{
     if(state.running && !confirm("A check is still running. Quit anyway?")) return;
     quitting = true;
     try{ await api("/api/quit", {}); }catch(e){}
-    $("#offline").querySelector("b").textContent = "OG Checker closed";
-    $("#offlineMsg").textContent = "You can close this tab. Open the app again whenever you want to check more names.";
+    $("#offlineTitle").textContent = "OG Checker closed";
+    $("#offlineMsg").textContent = "You can close this tab. Open OG Checker again whenever you want to check more names.";
     $("#offline").style.display = "grid";
   };
   if(CFG.public){
     $("#resetHist").hidden = true;
-    $("#offlineMsg").textContent = "The server is waking up or restarting. This page will reconnect by itself in a moment.";
+    $("#offlineMsg").textContent = "The server is restarting. This page will reconnect by itself in a moment.";
     $("#limitHint").textContent = `(max ${fmt(CFG.maxNames)})`;
   }
   buildPlatforms(); clampLen(); wire(); syncUI(); paintTabs(); render(); poll();

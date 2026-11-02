@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-og//checker (OG Checker) - web version.
+OG Checker - local server.
+
+The Windows app (app.py / OGChecker.exe) runs this server privately and shows the page in its own window.
+Running this file directly opens the page in your browser instead (handy for development).
 
 On your own computer:   python server.py   (or double-click start.bat)
     -> opens http://127.0.0.1:8765, no limits.
@@ -246,7 +249,7 @@ def reaper():
                     del JOBS[cid]
         HISTORY.save()
         # The .exe has no window to close, so it quits by itself a few minutes after the last page is closed
-        if FROZEN and not PUBLIC and LAST_PAGE_SEEN[0] and now - LAST_PAGE_SEEN[0] > 180:
+        if FROZEN and not PUBLIC and not EMBEDDED[0] and LAST_PAGE_SEEN[0] and now - LAST_PAGE_SEEN[0] > 180:
             shutdown()
 
 
@@ -401,7 +404,8 @@ class Handler(BaseHTTPRequestHandler):
         # Only this site's own page may start or stop checks
         origin = self.headers.get("Origin")
         host = self.headers.get("Host", "")
-        if origin and urlparse(origin).netloc not in (host, f"127.0.0.1:{PORT}", f"localhost:{PORT}"):
+        if origin and urlparse(origin).netloc not in (host, f"127.0.0.1:{PORT}", f"localhost:{PORT}") \
+                and not (EMBEDDED[0] and origin == "null"):
             return self.send_json({"error": "forbidden"}, 403)
         length = min(int(self.headers.get("Content-Length") or 0), 10_000)
         try:
@@ -435,6 +439,16 @@ class Handler(BaseHTTPRequestHandler):
 
 
 SERVER = [None]
+EMBEDDED = [False]   # True when the page lives inside the app's own window (app.py)
+
+
+def make_server(host, port):
+    """Create the HTTP server and start background housekeeping. Caller runs serve_forever()."""
+    server = ThreadingHTTPServer((host, port), Handler)
+    server.daemon_threads = True
+    SERVER[0] = server
+    threading.Thread(target=reaper, daemon=True).start()
+    return server
 
 
 def shutdown():
@@ -448,21 +462,18 @@ def shutdown():
 
 def main():
     try:
-        server = ThreadingHTTPServer((HOST, PORT), Handler)
+        server = make_server(HOST, PORT)
     except OSError:
         print(f"Port {PORT} is busy - the app may already be running.")
         if not PUBLIC:
             webbrowser.open(f"http://127.0.0.1:{PORT}")
         return
-    server.daemon_threads = True
-    SERVER[0] = server
-    threading.Thread(target=reaper, daemon=True).start()
     if PUBLIC:
-        print(f"og//checker (public mode) listening on port {PORT} · max {MAX_NAMES} names per check "
+        print(f"OG Checker (public mode) listening on port {PORT} · max {MAX_NAMES} names per check "
               f"· platforms: {', '.join(ENABLED)}", flush=True)
     else:
         url = f"http://127.0.0.1:{PORT}"
-        print(f"og//checker running at {url}")
+        print(f"OG Checker running at {url}")
         print("Leave this window open while you use the app. Press Ctrl+C to quit.")
         if "--no-browser" not in sys.argv:
             threading.Timer(0.6, lambda: webbrowser.open(url)).start()
