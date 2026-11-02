@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OG Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070b; --panel:#0e0e15; --panel2:#15151f; --line:#1f1f2c; --line2:#2c2c3d;
+  --text:#ecebf5; --muted:#9592ab; --dim:#5f5c75;
+  --accent:#9d6bff; --accent2:#ff4fd8; --accent-ink:#ffffff; --accent-soft:rgba(157,107,255,.14);
+  --green:#3ddc84; --green-soft:rgba(61,220,132,.12);
+  --cyan:#4de1ff; --cyan-soft:rgba(77,225,255,.12);
+  --gold:#f5c04a; --gold-soft:rgba(245,192,74,.12);
+  --violet:#b48cff; --violet-soft:rgba(180,140,255,.12);
+  --red:#ff6b6b; --red-soft:rgba(255,107,107,.10);
+  --blue:#5eb2ff;
+  --radius:14px; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(900px 500px at 85% -10%,rgba(157,107,255,.10),transparent 60%),radial-gradient(700px 400px at 100% 100%,rgba(255,79,216,.05),transparent 60%),var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:380px 1fr;height:100vh}
+
+/* ---------- sidebar ---------- */
+aside{background:rgba(14,14,21,.85);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 20px 14px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff;font-weight:700;font-family:var(--mono);font-size:13px;letter-spacing:-.04em;box-shadow:0 0 20px -4px rgba(157,107,255,.7)}
+.brand h1{font-family:var(--mono);letter-spacing:-.03em}
+.brand h1 em{font-style:normal;color:var(--accent)}
+.brand h1{font-size:16px;margin:0;font-weight:700;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:12px}
+.scroll{flex:1;overflow-y:auto;padding:4px 20px 20px}
+.section{margin-top:18px}
+.label{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-family:var(--mono)}
+.label::before{content:"// ";color:var(--accent);opacity:.8}
+.label{justify-content:flex-start;gap:0}
+.label small{margin-left:auto}
+.label small{text-transform:none;letter-spacing:0;font-weight:500;color:var(--dim)}
+
+.platforms{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.plat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--muted);transition:.15s}
+.plat:hover{border-color:var(--line2);color:var(--text)}
+.plat .mono{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff}
+.plat.on{border-color:var(--accent);color:var(--text);background:var(--accent-soft)}
+.plat .speed{font-size:10.5px;color:var(--dim);font-weight:500}
+
+.note{margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--muted)}
+.note summary{cursor:pointer;color:var(--text);font-weight:500;list-style:none;display:flex;justify-content:space-between}
+.note summary::-webkit-details-marker{display:none}
+.note summary::after{content:"+";color:var(--dim)}
+.note[open] summary::after{content:"–"}
+.note p{margin:8px 0 0}
+
+.modes{display:flex;flex-direction:column;gap:6px}
+.mode{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:.15s}
+.mode:hover{border-color:var(--line2)}
+.mode .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--line2);margin-top:2px;flex:none;transition:.15s}
+.mode b{display:block;font-weight:600;font-size:13.5px}
+.mode span{color:var(--muted);font-size:12px}
+.mode.on{border-color:var(--accent);background:var(--accent-soft)}
+.mode.on .dot{border-color:var(--accent);background:radial-gradient(var(--accent) 45%,transparent 50%)}
+
+input[type=text],input[type=number]{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:10px;padding:9px 12px;outline:none;transition:.15s}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.kw{margin-top:8px;font-family:var(--mono)}
+
+.range{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.step{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.step button{background:none;border:0;width:34px;height:38px;color:var(--muted);font-size:17px}
+.step button:hover{color:var(--text);background:var(--panel2)}
+.step input{border:0;background:none;text-align:center;padding:0;width:100%;box-shadow:none;font-family:var(--mono);font-weight:600;font-size:15px;-moz-appearance:textfield}
+.step input::-webkit-inner-spin-button{display:none}
+.range .to{color:var(--dim);font-size:12px}
+.estimate{margin-top:8px;font-size:12px;color:var(--dim)}
+.estimate b{color:var(--muted);font-weight:600}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;transition:.15s}
+.chip code{font-family:var(--mono);color:var(--text);font-size:12px}
+.chip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.chip.fixed{cursor:default;opacity:.8}
+.chip:disabled{opacity:.35;cursor:not-allowed}
+
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg);border:1px solid var(--line2);border-radius:10px;padding:3px}
+.seg button{background:none;border:0;border-radius:7px;padding:7px 4px;font-size:12.5px;color:var(--muted);font-weight:500}
+.seg button.on{background:var(--panel2);color:var(--text);box-shadow:0 1px 0 var(--line2) inset}
+.hint{font-size:12px;color:var(--dim);margin-top:6px}
+
+details.adv{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+details.adv summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;list-style:none}
+details.adv summary::-webkit-details-marker{display:none}
+details.adv summary::before{content:"▸ ";color:var(--dim)}
+details.adv[open] summary::before{content:"▾ "}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.toggle{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:13px}
+.switch{width:38px;height:22px;border-radius:999px;background:var(--line2);border:0;position:relative;transition:.15s;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.switch.on{background:var(--accent)}
+.switch.on::after{left:19px}
+.linkbtn{background:none;border:0;color:var(--muted);font-size:12.5px;padding:0;margin-top:12px;text-decoration:underline;text-underline-offset:3px}
+.linkbtn:hover{color:var(--red)}
+
+.go{padding:16px 20px;border-top:1px solid var(--line);background:var(--panel)}
+.btn-main{width:100%;border:0;border-radius:12px;padding:13px;font-weight:700;font-size:15px;background:linear-gradient(135deg,var(--accent),#7b4bff 60%,var(--accent2));color:#fff;box-shadow:0 8px 30px -8px rgba(157,107,255,.7);font-family:var(--mono);letter-spacing:.02em;text-transform:uppercase;display:flex;justify-content:center;align-items:center;gap:8px;transition:.15s}
+.btn-main:hover{filter:brightness(1.08)}
+.btn-main.stop{background:var(--red);color:#2a0606;box-shadow:0 8px 30px -8px rgba(255,107,107,.6)}
+.btn-main:disabled{opacity:.5;cursor:default}
+.go .kbd{font-size:11px;color:var(--dim);text-align:center;margin-top:7px}
+.quit{background:none;border:0;padding:0;color:var(--dim);font-size:11px;text-decoration:underline;text-underline-offset:2px}
+.quit:hover{color:var(--red)}
+
+/* ---------- main ---------- */
+main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:20px 24px;gap:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.top h2{margin:0;font-size:20px;letter-spacing:-.02em}
+.top h2 span{color:var(--muted);font-weight:500}
+.pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted);max-width:60%}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
+.pill.run i{background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:pulse 1.6s infinite}
+.pill.warn i{background:var(--gold)}
+.pill.done i{background:var(--blue)}
+.pill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(157,107,255,.6)}70%{box-shadow:0 0 0 8px rgba(157,107,255,0)}100%{box-shadow:0 0 0 0 rgba(157,107,255,0)}}
+
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.stat .k{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.stat .k i{width:7px;height:7px;border-radius:2px}
+.stat .k{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+.stat .v{font-size:24px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;margin-top:2px}
+.progress{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.bar{height:8px;background:var(--bg);border-radius:999px;overflow:hidden}
+.bar div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(157,107,255,.6);border-radius:999px;transition:width .3s}
+.pmeta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:8px;gap:12px;flex-wrap:wrap}
+.pmeta b{color:var(--text);font-weight:600}
+.notice{background:var(--gold-soft);border:1px solid rgba(245,192,74,.35);color:#f8d98c;border-radius:12px;padding:10px 14px;font-size:13px;display:none}
+
+.results{flex:1;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column}
+.tabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;color:var(--muted);font-weight:500;display:flex;gap:8px;align-items:center;white-space:nowrap}
+.tab .n{font-family:var(--mono);font-size:11.5px;background:var(--panel2);border-radius:999px;padding:1px 8px;color:var(--muted)}
+.tab.on{color:var(--text);border-bottom-color:var(--tc)}
+.tab.on .n{background:var(--tcs);color:var(--tc)}
+.toolbar{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:center}
+.search{position:relative;flex:1;max-width:320px}
+.search input{padding-left:32px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dim)}
+.tb{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center;white-space:nowrap}
+.tb:hover{color:var(--text);border-color:var(--line2)}
+.spacer{flex:1}
+.list{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;align-content:start}
+.name{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;transition:.12s;position:relative;min-width:0}
+.name:hover{border-color:var(--c);transform:translateY(-1px)}
+.name .t{font-family:var(--mono);font-weight:600;font-size:14.5px;color:var(--c);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name .s{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name .copy{position:absolute;right:10px;top:10px;opacity:0;color:var(--muted);transition:.12s}
+.name:hover .copy{opacity:1}
+.tier{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;margin-right:5px;background:var(--gold-soft);color:var(--gold);font-family:var(--mono)}
+.badge{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;margin-right:5px;font-family:var(--mono);background:var(--panel);border:1px solid var(--line2);color:var(--muted)}
+.badge.og{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 0 10px -2px rgba(255,79,216,.6)}
+.name.isog{border-color:rgba(157,107,255,.45);background:linear-gradient(180deg,rgba(157,107,255,.10),var(--panel2))}
+.name.isog .t{text-shadow:0 0 10px rgba(245,192,74,.35)}
+.ogtoggle.on{border-color:var(--accent);color:var(--text);background:var(--accent-soft)}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:56px 20px}
+.empty .big{font-size:34px;margin-bottom:6px}
+.empty b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+.more{grid-column:1/-1;text-align:center;color:var(--dim);font-size:12.5px;padding:8px}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:10px;font-weight:600;font-size:13px;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.offline{position:fixed;inset:0;background:rgba(8,10,14,.85);display:none;place-items:center;z-index:9;text-align:center;padding:20px}
+.offline div{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:24px 28px;max-width:420px}
+.offline b{font-size:16px;display:block;margin-bottom:6px}
+.offline p{color:var(--muted);margin:0}
+
+@media (max-width:980px){
+  .app{grid-template-columns:1fr;height:auto}
+  aside{border-right:0;border-bottom:1px solid var(--line)}
+  .scroll{overflow:visible}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .results{min-height:520px}
+}
+@media (max-width:560px){
+  main{padding:16px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .toolbar{flex-wrap:wrap}
+  .search{max-width:none;flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="logo">OG</div>
+      <div><h1>og<em>//</em>checker</h1><p>Find OG &amp; rare handles before anyone else</p></div>
+    </div>
+
+    <div class="scroll">
+      <div class="section">
+        <div class="label">Platform</div>
+        <div class="platforms" id="platforms"></div>
+        <details class="note" id="noteBox"><summary>How this platform is checked</summary><p id="note"></p></details>
+      </div>
+
+      <div class="section">
+        <div class="label">What to search</div>
+        <div class="modes" id="modes">
+          <button class="mode" data-mode="words"><i class="dot"></i><div><b>Dictionary words</b><span>Only real words. The fastest way to find clean, rare handles.</span></div></button>
+          <button class="mode" data-mode="brute"><i class="dot"></i><div><b>Every combo</b><span>Random 3L, 4L or 4C combos at the length you pick. Best for OG hunting.</span></div></button>
+          <button class="mode" data-mode="keyword"><i class="dot"></i><div><b>Keyword</b><span>Every free spin on your name, like <code>1wolf</code>, <code>wolfx</code>, <code>x.wolf</code>.</span></div></button>
+        </div>
+        <input class="kw" id="keyword" type="text" placeholder="Type a keyword, e.g. wolf" autocomplete="off" spellcheck="false" hidden>
+      </div>
+
+      <div class="section">
+        <div class="label">Name length <small id="lenHint"></small></div>
+        <div class="range">
+          <div class="step"><button data-step="min,-1" aria-label="Shorter minimum">−</button><input id="minLen" type="number" aria-label="Minimum length"><button data-step="min,1" aria-label="Longer minimum">+</button></div>
+          <span class="to">to</span>
+          <div class="step"><button data-step="max,-1" aria-label="Shorter maximum">−</button><input id="maxLen" type="number" aria-label="Maximum length"><button data-step="max,1" aria-label="Longer maximum">+</button></div>
+        </div>
+        <div class="estimate" id="estimate"></div>
+      </div>
+
+      <div class="section" id="charSection">
+        <div class="label">Characters</div>
+        <div class="chips">
+          <span class="chip on fixed"><code>a–z</code></span>
+          <button class="chip" data-char="digits"><code>0–9</code> Numbers</button>
+          <button class="chip" data-char="underscore"><code>_</code> Underscore</button>
+          <button class="chip" data-char="periods"><code>.</code> Period</button>
+          <button class="chip" data-char="hyphens"><code>-</code> Hyphen</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="label">Rare filter</div>
+        <div class="seg" id="rareSeg">
+          <button data-rare="strict">Strict</button>
+          <button data-rare="normal">Normal</button>
+          <button data-rare="loose">Loose</button>
+        </div>
+        <div class="hint" id="rareHint"></div>
+      </div>
+
+      <details class="adv">
+        <summary>Advanced</summary>
+        <div class="grid2">
+          <div class="field"><label for="limit">Max names to check <span id="limitHint"></span></label><input id="limit" type="number" min="1" step="500"></div>
+          <div class="field"><label for="threads">Threads</label><input id="threads" type="number" min="1" max="32"></div>
+          <div class="field"><label for="delay">Delay per check (sec)</label><input id="delay" type="number" min="0" max="120" step="0.5"></div>
+        </div>
+        <div class="toggle"><span>Random order</span><button class="switch" id="random" aria-label="Random order"></button></div>
+        <button class="linkbtn" id="resetHist">Reset Minecraft drop history</button>
+      </details>
+    </div>
+
+    <div class="go">
+      <button class="btn-main" id="goBtn">Start checking</button>
+      <div class="kbd">Ctrl + Enter to start or stop<span id="quitWrap"> · <button class="quit" id="quitBtn">Quit app</button></span></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <h2 id="title">Minecraft <span>usernames</span></h2>
+      <div class="pill" id="pill"><i></i><span id="statusText">Ready</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k"><i style="background:var(--muted)"></i>Checked</div><div class="v" id="sChecked">0</div></div>
+      <div class="stat"><div class="k"><i style="background:var(--green)"></i>Available</div><div class="v" id="sAvail">0</div></div>
+      <div class="stat"><div class="k"><i style="background:var(--gold)"></i>OG &amp; rare</div><div class="v" id="sRare">0</div></div>
+      <div class="stat"><div class="k"><i style="background:var(--red)"></i>Taken</div><div class="v" id="sTaken">0</div></div>
+      <div class="stat"><div class="k"><i style="background:var(--dim)"></i>Unknown</div><div class="v" id="sSkipped">0</div></div>
+    </div>
+
+    <div class="progress">
+      <div class="bar"><div id="bar"></div></div>
+      <div class="pmeta"><span id="pCount">Not started</span><span id="pSpeed"></span></div>
+    </div>
+    <div class="notice" id="notice"></div>
+
+    <div class="results">
+      <div class="tabs" id="tabs"></div>
+      <div class="toolbar">
+        <label class="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="filter" type="text" placeholder="Filter names…" autocomplete="off" spellcheck="false">
+        </label>
+        <button class="tb ogtoggle" id="ogOnly" title="Only 3-character names and 4-letter names">OG only</button>
+        <span class="spacer"></span>
+        <button class="tb" id="copyAll">Copy all</button>
+        <button class="tb" id="download">Download .txt</button>
+        <button class="tb" id="clearBtn">Clear</button>
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<div class="offline" id="offline"><div><b>Can't reach the checker</b><p id="offlineMsg">The program window was closed. Start it again with <code>start.bat</code> (or <code>python server.py</code>) and this page will reconnect.</p></div></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const PLAT_STYLE = {
+  Minecraft:{c:"#5ba83a",m:"M"}, Roblox:{c:"#e2231a",m:"R"}, TikTok:{c:"#25262b",m:"T",b:"#fe2c55"},
+  GitHub:{c:"#6e7681",m:"G"}, Discord:{c:"#5865f2",m:"D"}, Instagram:{c:"#d62976",m:"I"},
+};
+const TABS = [
+  {id:"rare", title:"OG & rare", c:"var(--gold)", cs:"var(--gold-soft)"},
+  {id:"avail", title:"Available", c:"var(--green)", cs:"var(--green-soft)"},
+  {id:"locked", title:"Drops", c:"var(--cyan)", cs:"var(--cyan-soft)", mc:true},
+  {id:"taken", title:"Taken", c:"var(--red)", cs:"var(--red-soft)"},
+];
+const RARE_HINT = {
+  strict:"OGs plus dictionary words and two-word combos (fire, firewolf).",
+  normal:"Words, word-like names (wolfz), and cool patterns (abba, abcd).",
+  loose:"Everything above plus any pronounceable name (velmora).",
+};
+const TIER_NAME = {1:"dictionary",2:"2 words",3:"word+",4:"semi",5:"clean",6:"sayable"};
+// OG-scene name classes: 3L = 3 letters, 4C = 4 mixed characters, 4N = 4 numbers
+function cls(n){ const L=n.length; return /^[a-z]+$/.test(n) ? L+"L" : /^[0-9]+$/.test(n) ? L+"N" : L+"C"; }
+function isOG(n){ return n.length<=3 || (n.length===4 && /^[a-z]+$/.test(n)); }
+
+let CFG, S = load();
+let state = {runId:0, running:false, stats:{}, results:{rare:[],avail:[],locked:[],taken:[]}, total:0, platform:S.platform};
+let tab = "rare", renderQueued = false, online = true, quitting = false, ogOnly = false;
+
+function load(){
+  const d = {platform:"Minecraft", mode:"words", minLen:3, maxLen:6, digits:false, underscore:false, periods:false,
+             hyphens:false, rare:"normal", limit:5000, random:true, keyword:"", perPlat:{}};
+  try{ return Object.assign(d, JSON.parse(localStorage.getItem("unc-settings")||"{}")); }catch(e){ return d; }
+}
+function save(){ try{ localStorage.setItem("unc-settings", JSON.stringify(S)); }catch(e){} }
+const fmt = n => Number(n).toLocaleString();
+const CID = (()=>{
+  let id; try{ id = sessionStorage.getItem("unc-cid"); }catch(e){}
+  if(!id){ id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2)); try{ sessionStorage.setItem("unc-cid", id); }catch(e){} }
+  return id;
+})();
+function api(path, body){
+  const headers = {"X-Client-Id": CID};
+  const opts = body===undefined ? {headers} : {method:"POST", headers:{...headers, "Content-Type":"application/json"}, body:JSON.stringify(body)};
+  return fetch(path, opts).then(r=>r.json());
+}
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1600); }
+function spec(){ return CFG.platforms[S.platform]; }
+function pp(){
+  const p = S.perPlat[S.platform] || (S.perPlat[S.platform] = {threads:spec().threads, delay:spec().delay});
+  if(CFG.public){ p.threads = Math.min(p.threads, spec().threads); p.delay = Math.max(p.delay, spec().delay); }
+  return p;
+}
+
+/* ---------- settings UI ---------- */
+function buildPlatforms(){
+  $("#platforms").innerHTML = Object.keys(CFG.platforms).map(p=>{
+    const st = PLAT_STYLE[p]||{c:"#555",m:p[0]}, sp = CFG.platforms[p];
+    const speed = sp.batch>1 ? "fast" : sp.delay>=5 ? "very slow" : "slow";
+    return `<button class="plat" data-plat="${p}"><span class="mono" style="background:${st.c};${st.b?`box-shadow:inset 0 -3px 0 ${st.b}`:""}">${st.m}</span>${p}<span class="speed">${speed}</span></button>`;
+  }).join("");
+  document.querySelectorAll(".plat").forEach(b=>b.onclick=()=>{ if(state.running) return toast("Stop the current check first"); S.platform=b.dataset.plat; clampLen(); syncUI(); });
+}
+function clampLen(){
+  const sp = spec();
+  S.minLen = Math.max(sp.min, Math.min(sp.max, +S.minLen||sp.min));
+  S.maxLen = Math.max(S.minLen, Math.min(sp.max, +S.maxLen||S.minLen));
+}
+function syncUI(){
+  const sp = spec(), p = pp();
+  document.querySelectorAll(".plat").forEach(b=>b.classList.toggle("on", b.dataset.plat===S.platform));
+  document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("on", b.dataset.mode===S.mode));
+  $("#keyword").hidden = S.mode!=="keyword";
+  $("#keyword").value = S.keyword;
+  $("#note").textContent = sp.note;
+  $("#lenHint").textContent = `${S.platform} allows ${sp.min}–${sp.max}`;
+  $("#minLen").value = S.minLen; $("#maxLen").value = S.maxLen;
+  const allow = {digits:true, underscore:sp.underscore, periods:sp.periods, hyphens:sp.hyphens};
+  document.querySelectorAll("[data-char]").forEach(b=>{
+    const k=b.dataset.char; if(!allow[k]) S[k]=false;
+    b.disabled=!allow[k]; b.classList.toggle("on", !!S[k]);
+    b.title = allow[k] ? "" : `${S.platform} usernames can't contain this`;
+  });
+  $("#charSection").style.display = S.mode==="words" ? "none" : "";
+  document.querySelectorAll("#rareSeg button").forEach(b=>b.classList.toggle("on", b.dataset.rare===S.rare));
+  $("#rareHint").textContent = RARE_HINT[S.rare];
+  S.limit = Math.min(S.limit, CFG.maxNames);
+  $("#limit").value = S.limit; $("#limit").max = CFG.maxNames;
+  $("#threads").value = p.threads; $("#delay").value = p.delay;
+  if(CFG.public){ $("#threads").max = sp.threads; $("#delay").min = sp.delay; }
+  $("#random").classList.toggle("on", S.random);
+  paintTitle();
+  document.title = `${S.platform} · OG Checker`;
+  estimate(); save();
+}
+function estimate(){
+  const sp = spec(), p = pp();
+  let pool, cs = 26 + (S.digits?10:0) + (S.underscore?1:0) + (S.periods?1:0) + (S.hyphens?1:0);
+  if(S.mode==="words"){
+    pool = null;
+    let words = 0; for(const L in CFG.wordCounts) if(+L>=S.minLen && +L<=S.maxLen) words += CFG.wordCounts[L];
+    S._words = words;
+  } else if(S.mode==="keyword"){
+    const k = (S.keyword||"").length; pool = 0;
+    if(k) for(let L=Math.max(S.minLen,k); L<=S.maxLen; L++) pool += (L-k+1)*Math.pow(cs,L-k);
+  } else { pool = 0; for(let L=S.minLen; L<=S.maxLen; L++) pool += Math.pow(cs,L); }
+  const n = pool===null ? Math.min(S.limit, S._words) : Math.min(S.limit, pool);
+  const perSec = spec().batch>1 ? (spec().batch*p.threads)/Math.max(0.35, p.delay+0.35) : p.threads/Math.max(0.6, p.delay+0.6);
+  const secs = n/perSec;
+  let txt = pool===null ? `<b>${fmt(S._words)}</b> words fit this length · checking <b>${fmt(n)}</b>` :
+            S.mode==="keyword" && !S.keyword ? "Type a keyword to see how many names it makes" :
+            `<b>${pool>1e12?"trillions of":fmt(pool)}</b> possible names · checking <b>${fmt(n)}</b>`;
+  if(!(S.mode==="keyword" && !S.keyword)) txt += ` · about <b>${dur(secs)}</b>`;
+  $("#estimate").innerHTML = txt;
+}
+function dur(s){
+  if(!isFinite(s)) return "–";
+  if(s<60) return Math.max(1,Math.round(s))+"s";
+  if(s<3600) return Math.round(s/60)+" min";
+  if(s<86400) return (s/3600).toFixed(1).replace(".0","")+" hr";
+  return Math.round(s/86400)+" days";
+}
+
+function wire(){
+  document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{
+    S.mode=b.dataset.mode; if(S.mode==="keyword"){ S.digits=true; setTimeout(()=>$("#keyword").focus()); } syncUI();
+  });
+  $("#keyword").oninput = e=>{ S.keyword=e.target.value.trim().toLowerCase(); estimate(); save(); };
+  document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{
+    const [which,d]=b.dataset.step.split(","); const sp=spec();
+    if(which==="min"){ S.minLen=Math.max(sp.min,Math.min(sp.max,S.minLen+ +d)); if(S.maxLen<S.minLen) S.maxLen=S.minLen; }
+    else { S.maxLen=Math.max(sp.min,Math.min(sp.max,S.maxLen+ +d)); if(S.minLen>S.maxLen) S.minLen=S.maxLen; }
+    syncUI();
+  });
+  $("#minLen").onchange = e=>{ S.minLen=+e.target.value; if(S.maxLen<S.minLen) S.maxLen=S.minLen; clampLen(); syncUI(); };
+  $("#maxLen").onchange = e=>{ S.maxLen=+e.target.value; if(S.minLen>S.maxLen) S.minLen=S.maxLen; clampLen(); syncUI(); };
+  document.querySelectorAll("[data-char]").forEach(b=>b.onclick=()=>{ S[b.dataset.char]=!S[b.dataset.char]; syncUI(); });
+  document.querySelectorAll("#rareSeg button").forEach(b=>b.onclick=()=>{ S.rare=b.dataset.rare; syncUI(); });
+  $("#limit").onchange = e=>{ S.limit=Math.max(1,Math.min(CFG.maxNames,Math.round(+e.target.value||1000))); syncUI(); };
+  $("#threads").onchange = e=>{ pp().threads=Math.max(1,Math.min(CFG.public?spec().threads:32,Math.round(+e.target.value||1))); syncUI(); };
+  $("#delay").onchange = e=>{ pp().delay=Math.max(CFG.public?spec().delay:0,Math.min(120,+e.target.value||0)); syncUI(); };
+  $("#random").onclick = ()=>{ S.random=!S.random; syncUI(); };
+  $("#resetHist").onclick = async ()=>{
+    if(!confirm("Forget every Minecraft name the app remembers seeing taken? Drop tracking will start over.")) return;
+    const r = await api("/api/reset-history", {}); toast(`Forgot ${fmt(r.forgot)} names`);
+  };
+  $("#goBtn").onclick = toggleRun;
+  document.addEventListener("keydown", e=>{ if((e.ctrlKey||e.metaKey) && e.key==="Enter"){ e.preventDefault(); toggleRun(); } });
+  $("#filter").oninput = queueRender;
+  $("#ogOnly").onclick = ()=>{ ogOnly=!ogOnly; $("#ogOnly").classList.toggle("on", ogOnly); queueRender(); };
+  $("#copyAll").onclick = copyAll;
+  $("#download").onclick = download;
+  $("#clearBtn").onclick = async ()=>{ if(state.running) return toast("Stop the check first"); await api("/api/clear",{}); resetLocal(); };
+  $("#list").onclick = e=>{ const b=e.target.closest(".name"); if(b) copy(b.dataset.n, `Copied ${b.dataset.n}`); };
+}
+
+async function toggleRun(){
+  if(state.running){ $("#goBtn").disabled=true; await api("/api/stop",{}); setTimeout(()=>{$("#goBtn").disabled=false;},3000); return; }
+  const p = pp();
+  const body = {platform:S.platform, mode:S.mode, minLen:S.minLen, maxLen:S.maxLen, digits:S.digits, underscore:S.underscore,
+                periods:S.periods, hyphens:S.hyphens, rare:S.rare, limit:S.limit, threads:p.threads, delay:p.delay,
+                random:S.random, keyword:S.keyword};
+  $("#goBtn").disabled = true;
+  try{
+    const r = await api("/api/start", body);
+    if(!r.ok){ toast(r.error); return; }
+    resetLocal(); tab = "rare"; state.running = true; paintRunning();
+  } finally { $("#goBtn").disabled = false; }
+}
+
+/* ---------- results ---------- */
+function resetLocal(){
+  state.results = {rare:[],avail:[],locked:[],taken:[]}; state.runId = -1;
+  $("#filter").value = ""; queueRender();
+}
+async function poll(){
+  try{
+    const q = new URLSearchParams({run:state.runId, cid:CID});
+    for(const k in state.results) q.set(k, state.results[k].length);
+    const r = await api("/api/poll?"+q);
+    if(!online){ online=true; $("#offline").style.display="none"; }
+    if(r.runId !== state.runId){ state.results = {rare:[],avail:[],locked:[],taken:[]}; state.runId = r.runId; }
+    let changed = false;
+    for(const k in r.new){ if(r.new[k].length){ state.results[k].push(...r.new[k]); changed = true; } }
+    if(changed && r.new.rare.length) state.results.rare.sort((a,b)=>(b.og-a.og) || (b.og ? a.name.length-b.name.length : 0) || (a.tier-b.tier) || (a.name.length-b.name.length));
+    const wasRunning = state.running;
+    Object.assign(state, {running:r.running, stats:r.stats, total:r.total, status:r.status, notice:r.notice, elapsed:r.elapsed, platform:r.platform});
+    paintStats();
+    if(wasRunning !== r.running) paintRunning();
+    if(wasRunning && !r.running && r.status==="Finished") toast(`Done · ${fmt(r.stats.avail)} available, ${fmt(r.stats.rare)} rare`);
+    if(changed) queueRender();
+  }catch(e){
+    if(online){ online=false; $("#offline").style.display="grid"; }
+  }
+  if(!quitting) setTimeout(poll, state.running ? 400 : 1200);
+}
+function paintTitle(){
+  const has = Object.values(state.results).some(a=>a.length);
+  const other = has && state.platform && state.platform!==S.platform;
+  $("#title").innerHTML = other ? `${state.platform} <span>results · next run: ${S.platform}</span>` : `${S.platform} <span>usernames</span>`;
+}
+function paintRunning(){
+  const b = $("#goBtn");
+  b.disabled = false;
+  b.classList.toggle("stop", state.running);
+  b.textContent = state.running ? "Stop" : "Start checking";
+}
+function paintStats(){
+  const s = state.stats||{};
+  $("#sChecked").textContent = fmt(s.checked||0);
+  $("#sAvail").textContent = fmt(s.avail||0);
+  $("#sRare").textContent = fmt(s.rare||0);
+  $("#sTaken").textContent = fmt(s.taken||0);
+  $("#sSkipped").textContent = fmt(s.skipped||0);
+  const done = (s.checked||0)+(s.skipped||0), tot = state.total||0;
+  const pct = tot ? Math.min(100, done/tot*100) : 0;
+  $("#bar").style.width = pct+"%";
+  const rate = state.elapsed>1 ? done/state.elapsed : 0;
+  $("#pCount").innerHTML = tot ? `<b>${fmt(done)}</b> of ${fmt(tot)} checked · ${pct.toFixed(pct<10?1:0)}%` : "Not started";
+  $("#pSpeed").innerHTML = !tot ? "" : state.running
+      ? (rate>0 ? `${rate>=1?rate.toFixed(0):rate.toFixed(2)} names/sec · ${dur((tot-done)/rate)} left` : "starting…")
+      : `took ${dur(state.elapsed)}`;
+  const pill = $("#pill"), st = state.status||"Ready";
+  pill.className = "pill " + (state.running ? (/limit|unknown|problem/i.test(st) ? "warn" : "run") : (/finish/i.test(st) ? "done" : /limit/i.test(st) ? "warn" : ""));
+  $("#statusText").textContent = st;
+  $("#notice").style.display = state.notice ? "block" : "none";
+  $("#notice").textContent = state.notice||"";
+  paintTabs(); paintTitle();
+}
+function paintTabs(){
+  const s = state.stats||{};
+  const counts = {rare:s.rare, avail:s.avail, locked:s.locked, taken:s.taken};
+  const showLocked = state.platform==="Minecraft" || S.platform==="Minecraft";
+  $("#tabs").innerHTML = TABS.filter(t=>!t.mc || showLocked).map(t=>
+    `<button class="tab ${t.id===tab?"on":""}" data-tab="${t.id}" style="--tc:${t.c};--tcs:${t.cs}">${t.title}<span class="n">${fmt(counts[t.id]||0)}</span></button>`).join("");
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{ tab=b.dataset.tab; paintTabs(); queueRender(); });
+}
+function queueRender(){ if(!renderQueued){ renderQueued=true; requestAnimationFrame(render); } }
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const LIMIT = 600;
+function visible(){
+  const f = $("#filter").value.trim().toLowerCase();
+  let items = state.results[tab]||[];
+  if(f) items = items.filter(i=>i.name.includes(f));
+  if(ogOnly) items = items.filter(i=>isOG(i.name));
+  return items;
+}
+function render(){
+  renderQueued = false;
+  const t = TABS.find(x=>x.id===tab), items = visible(), list = $("#list");
+  list.style.setProperty("--c", t.c);
+  if(!items.length){ list.innerHTML = emptyState(); return; }
+  const shown = tab==="avail"||tab==="taken" ? items.slice(-LIMIT).reverse() : items.slice(0, LIMIT);
+  list.innerHTML = shown.map(i=>{
+    const og = tab!=="taken" && isOG(i.name);
+    const badges = `<span class="badge${og?" og":""}">${og?"OG ":""}${cls(i.name)}</span>`;
+    const sub = tab==="rare" ? badges + (TIER_NAME[i.tier] ? `<span class="tier">${TIER_NAME[i.tier]}</span>` : "") + (i.label==="word"?"":esc(i.label))
+              : tab==="taken" ? "" : badges + (i.label ? esc(i.label) : "");
+    return `<button class="name${og?" isog":""}" data-n="${esc(i.name)}" title="Click to copy"><span class="t">${esc(i.name)}</span>${sub?`<span class="s">${sub}</span>`:""}<svg class="copy" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>`;
+  }).join("") + (items.length>LIMIT ? `<div class="more">Showing ${fmt(LIMIT)} of ${fmt(items.length)}${tab==="avail"||tab==="taken"?" (newest first)":" (best first)"} · use the filter or Download to see all</div>` : "");
+}
+function emptyState(){
+  if($("#filter").value.trim()) return `<div class="empty"><div class="big">🔍</div><b>No matches</b>Nothing in this list contains that text.</div>`;
+  const checked = (state.stats||{}).checked||0;
+  const msg = {
+    rare: checked ? ["💎","No OG or rare names yet","OG = 3-character or 4-letter names. Rare = dictionary words, semi-OGs and clean patterns. Try Real words mode, or a 3–4 length range."]
+                  : ["💎","Ready to hunt","Pick a platform and hit Start. OG handles (3L, 3C, 4L) land on top, then dictionary words, semis and patterns."],
+    avail:["✅","No available names yet","Every name that's free to register shows up here."],
+    locked:["⏳","No drops tracked yet","Minecraft holds a released name for 37 days before it drops. Names this app saw taken that are now free show up here with an estimated drop window. The more you scan, the more drops it catches."],
+    taken:["⛔","No taken names yet","Names someone already owns show up here."],
+  }[tab];
+  return `<div class="empty"><div class="big">${msg[0]}</div><b>${msg[1]}</b>${msg[2]}</div>`;
+}
+function copy(text, msg){
+  const done = ()=>toast(msg);
+  if(navigator.clipboard) navigator.clipboard.writeText(text).then(done, ()=>fallbackCopy(text, done));
+  else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast("Couldn't copy"); } t.remove();
+}
+function copyAll(){
+  const items = visible(); if(!items.length) return toast("Nothing to copy");
+  copy(items.map(i=>i.name).join("\n"), `Copied ${fmt(items.length)} names`);
+}
+function download(){
+  const r = state.results;
+  if(!Object.values(r).some(a=>a.length)) return toast("No results yet");
+  const sec = (title, arr, f) => `=== ${title} (${arr.length}) ===\n` + arr.map(f).join("\n") + "\n\n";
+  const txt = `og//checker · ${state.platform} · ${new Date().toLocaleString()}\n\n`
+    + sec("OG & RARE", r.rare, i=>`${i.name}   [${isOG(i.name)?"OG ":""}${cls(i.name)}${i.label?" · "+i.label:""}]`)
+    + sec("AVAILABLE", r.avail, i=>i.name)
+    + (r.locked.length ? sec("UPCOMING DROPS", r.locked, i=>`${i.name}   [${i.label}]`) : "")
+    + sec("TAKEN", r.taken, i=>i.name);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([txt], {type:"text/plain"}));
+  a.download = `og-checker-${state.platform.toLowerCase()}.txt`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- boot ---------- */
+(async function(){
+  try{ CFG = await api("/api/config"); }
+  catch(e){ $("#offline").style.display="grid"; return; }
+  if(!CFG.platforms[S.platform]) S.platform = Object.keys(CFG.platforms)[0];
+  if(CFG.app) $("#offlineMsg").textContent = "The app isn't running. Open OGChecker.exe again and this page will reconnect.";
+  $("#quitWrap").hidden = !!CFG.public;
+  $("#quitBtn").onclick = async ()=>{
+    if(state.running && !confirm("A check is still running. Quit anyway?")) return;
+    quitting = true;
+    try{ await api("/api/quit", {}); }catch(e){}
+    $("#offline").querySelector("b").textContent = "OG Checker closed";
+    $("#offlineMsg").textContent = "You can close this tab. Open the app again whenever you want to check more names.";
+    $("#offline").style.display = "grid";
+  };
+  if(CFG.public){
+    $("#resetHist").hidden = true;
+    $("#offlineMsg").textContent = "The server is waking up or restarting. This page will reconnect by itself in a moment.";
+    $("#limitHint").textContent = `(max ${fmt(CFG.maxNames)})`;
+  }
+  buildPlatforms(); clampLen(); wire(); syncUI(); paintTabs(); render(); poll();
+})();
+</script>
+</body>
+</html>
