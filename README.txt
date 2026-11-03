@@ -51,20 +51,30 @@ GOOD TO KNOW
 =====================================================================
 EARNING FROM DOWNLOADS (AD LINK)
 =====================================================================
-1. Sign up at an ad-link service (Linkvertise and LootLabs are the
-   common ones for downloads).
-2. Create a new link. As the destination, use your direct download URL:
-   https://github.com/YOUR-NAME/YOUR-REPO/releases/latest/download/OGChecker.exe
-   (for you: https://github.com/rsuf/UserTool/releases/latest/download/OGChecker.exe)
-   Because it says "latest", this one link keeps working for every
-   new version.
-3. On GitHub, open docs/index.html, click the pencil to edit, and find
-   the CONFIG line near the bottom. Paste your ad link between the
-   quotes after adLink, for example:
-     adLink: "https://link-target.net/12345/og-checker",
-4. Optional: set showSource: false to hide the footer link to your
-   GitHub repo.
-5. Commit. Every Download button now opens the ad page in a new tab.
+When someone clicks Download, the website shows a "Download options"
+screen with one button per ad-link service. Yours is already set up
+with Linkvertise.
+
+Ad link destination: point every ad link at your download page,
+  https://rsuf.github.io/UserTool/download.html
+It starts the newest OGChecker.exe download automatically.
+
+Change or add services: on GitHub, open docs/index.html, click the
+pencil, and find the "options" list near the bottom:
+
+  options: [
+    { name: "Linkvertise", url: "https://link-center.net/...", logo: "linkvertise-logo.png" },
+    { name: "LootLabs",    url: "https://loot-link.com/...",   logo: "lootlabs-logo.png" },
+  ],
+
+Each line is one button. Keep the quotes and commas as shown.
+  - logo: save the service's official logo (from its website or brand
+    kit) into the docs folder with that file name. If the file is
+    missing, a plain link icon shows instead.
+  - badge: optional small label on the button, e.g. badge: "Fast"
+  - Delete every line (leave options: [ ],) to go back to a direct
+    download with no ads.
+Optional: set showSource: false to hide the footer link to your repo.
 
 Worth knowing:
 - Anyone who finds your GitHub repo can still download from its

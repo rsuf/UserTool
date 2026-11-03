@@ -150,6 +150,32 @@ footer a:hover{color:var(--text)}
 .reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
 
+
+/* download options screen */
+.dlscreen{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;background:#111;
+  opacity:0;transition:opacity .25s ease}
+.dlscreen.show{display:flex}
+.dlscreen.in{opacity:1}
+.dlscreen::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.34) 1px,transparent 1.5px);background-size:13px 13px;
+  -webkit-mask-image:radial-gradient(ellipse 55% 45% at 22% 35%,#000 0%,transparent 70%),radial-gradient(ellipse 50% 45% at 80% 60%,#000 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 50% 90%,#000 0%,transparent 70%);
+  mask-image:radial-gradient(ellipse 55% 45% at 22% 35%,#000 0%,transparent 70%),radial-gradient(ellipse 50% 45% at 80% 60%,#000 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 50% 90%,#000 0%,transparent 70%);
+  opacity:.9}
+.dlbox{position:relative;width:100%;max-width:300px;text-align:center;transform:translateY(8px);transition:transform .3s ease}
+.dlscreen.in .dlbox{transform:none}
+.dlbox h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em;background:none;-webkit-text-fill-color:currentColor;color:var(--text)}
+.dlbox .sub{margin:6px 0 0;font-size:12.5px;color:var(--dim);max-width:none}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.opt{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;height:54px;border:1px solid var(--border2);border-radius:10px;
+  background:rgba(22,22,22,.85);color:var(--text);font-size:16px;font-weight:500;letter-spacing:-.01em;transition:border-color .15s,background .15s,transform .15s;overflow:hidden}
+.opt:hover{border-color:rgba(255,255,255,.4);background:rgba(30,30,30,.95)}
+.opt:active{transform:translateY(1px)}
+.opt .logo{width:24px;height:24px;flex:none;display:grid;place-items:center;color:var(--muted)}
+.opt .logo img{width:24px;height:24px;object-fit:contain;display:block}
+.opt .badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--bg);background:var(--text);border-radius:5px;padding:3px 6px}
+.dlback{display:inline-block;margin-top:22px;font-size:13px;color:var(--dim);text-decoration:underline;text-underline-offset:3px;background:none;border:0;cursor:pointer;font-family:inherit}
+.dlback:hover{color:var(--text)}
+.dlhelp{margin-top:18px;font-size:12px;color:var(--dim);line-height:1.6}
 @media (max-width:900px){
   nav.links{display:none}
   .grid3{grid-template-columns:1fr}
@@ -308,15 +334,34 @@ footer a:hover{color:var(--text)}
   </div>
 </footer>
 
+
+<!-- Download options screen (opens when someone clicks a Download button) -->
+<div class="dlscreen" id="dlScreen" role="dialog" aria-modal="true" aria-labelledby="dlTitle">
+  <div class="dlbox">
+    <h2 id="dlTitle">Download options</h2>
+    <p class="sub">OG Checker for Windows 10 and 11</p>
+    <div class="opts" id="dlOpts"></div>
+    <p class="dlhelp">You'll complete a few short steps, then your download starts automatically.</p>
+    <button class="dlback" id="dlBack">Back</button>
+  </div>
+</div>
 <script>
 /* Download settings.
    owner / repo  On GitHub Pages these are found automatically. On your own domain,
                  fill in your GitHub username and repository name.
-   adLink        Optional. Paste your ad link here (Linkvertise, LootLabs, etc.) and every
-                 Download button sends people through it. Point the ad link at:
-                 https://github.com/YOUR-NAME/YOUR-REPO/releases/latest/download/OGChecker.exe
+   options       The buttons on the "Download options" screen, top to bottom.
+                 name  what the button says
+                 url   your ad link (point it at https://YOUR-NAME.github.io/YOUR-REPO/download.html)
+                 logo  optional image file in the docs folder; a plain link icon shows if it's missing
+                 badge optional small label, e.g. "Fast"
+                 Add more lines to offer more services. Leave the list empty for a direct download.
    showSource    false hides the "Source code" link in the footer. */
-const CONFIG = { owner: "rsuf", repo: "UserTool", file: "OGChecker.exe", adLink: "https://link-center.net/9796000/EntsGKaJdDOq", showSource: true };
+const CONFIG = {
+  owner: "rsuf", repo: "UserTool", file: "OGChecker.exe", showSource: true,
+  options: [
+    { name: "Linkvertise", url: "https://link-center.net/9796000/EntsGKaJdDOq", logo: "linkvertise-logo.png" },
+  ],
+};
 
 function repo(){
   if(CONFIG.owner && CONFIG.repo) return CONFIG;
@@ -334,18 +379,50 @@ const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 let ready = false;
 
 function showNote(html){ note.innerHTML = html; note.classList.add("show"); }
-const AD = (CONFIG.adLink || "").trim();
+const OPTS = (CONFIG.options || []).filter(o => o && o.url);
 document.querySelectorAll("a.dl[data-download]").forEach(a=>{
-  if(AD){ a.href = AD; a.target = "_blank"; a.rel = "noopener"; }
+  if(OPTS.length) a.href = "#download-options";
   else if(R){ a.href = `https://github.com/${R.owner}/${R.repo}/releases/latest/download/${R.file}`; a.setAttribute("download",""); }
 });
 if(R) document.getElementById("srcLink").href = `https://github.com/${R.owner}/${R.repo}`;
 if(CONFIG.showSource === false) document.getElementById("srcLink").remove();
 
+/* ---- Download options screen ---- */
+const LINK_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+const escAttr = v => String(v).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const screen = document.getElementById("dlScreen");
+document.getElementById("dlOpts").innerHTML = OPTS.map(o =>
+  `<a class="opt" href="${escAttr(o.url)}" target="_blank" rel="noopener">` +
+    `<span class="logo">${o.logo ? `<img src="${escAttr(o.logo)}" alt="" onerror="this.parentNode.innerHTML=LINK_ICON">` : LINK_ICON}</span>` +
+    `${escAttr(o.name)}${o.badge ? `<span class="badge">${escAttr(o.badge)}</span>` : ""}</a>`).join("");
+let lastFocus = null;
+function openOptions(){
+  lastFocus = document.activeElement;
+  screen.classList.add("show");
+  document.body.style.overflow = "hidden";
+  requestAnimationFrame(()=>{ screen.classList.add("in"); const f = screen.querySelector(".opt"); if(f) f.focus({preventScroll:true}); });
+  if(location.hash !== "#download-options") history.pushState(null, "", "#download-options");
+}
+function closeOptions(fromHistory){
+  if(!screen.classList.contains("show")) return;
+  screen.classList.remove("in");
+  document.body.style.overflow = "";
+  setTimeout(()=>screen.classList.remove("show"), 200);
+  if(!fromHistory && location.hash === "#download-options") history.back();
+  if(lastFocus) lastFocus.focus({preventScroll:true});
+}
+document.getElementById("dlBack").onclick = ()=>closeOptions(false);
+screen.addEventListener("click", e=>{ if(e.target === screen) closeOptions(false); });
+addEventListener("keydown", e=>{ if(e.key === "Escape") closeOptions(false); });
+addEventListener("popstate", ()=>{ if(location.hash === "#download-options") openOptions(); else closeOptions(true); });
+if(OPTS.length && location.hash === "#download-options") openOptions();
+
 document.addEventListener("click", e=>{
   const a = e.target.closest("a.dl[data-download]");
   if(!a) return;
-  if(AD){  // ad link set: let the click through to the ad page
+  if(OPTS.length){
+    e.preventDefault();
+    openOptions();
     if(isMobile) showNote("OG Checker runs on <b>Windows PCs</b>. Download it on your computer.");
     return;
   }
@@ -378,7 +455,7 @@ if(R){
       document.querySelectorAll("[data-vershort]").forEach(s=> s.textContent = "Version " + v);
     })
     .catch(status => {
-      if(status === 404 && !AD){
+      if(status === 404 && !OPTS.length){
         document.querySelectorAll("a.dl").forEach(a=> a.classList.add("wait"));
         document.querySelectorAll("[data-vershort]").forEach(s=> s.textContent = "Build in progress");
       } else ready = true;  // GitHub API limit or offline: the direct link still works
