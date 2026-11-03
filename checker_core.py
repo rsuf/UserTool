@@ -567,6 +567,93 @@ def classify(name):
     return 0, ""
 
 
+def _patterns(n):
+    """Every visual pattern the name has, as (category, detail) pairs."""
+    core = n.replace("_", "").replace(".", "").replace("-", "")
+    out = []
+    if len(core) < 3 or not core.isalnum() or not any(c.isalpha() for c in core):
+        return out
+    if len(set(core)) == 1:
+        out.append(("repeat", f"all {core[0]}"))
+    else:
+        for size in range(2, len(core) // 2 + 1):
+            if len(core) % size == 0 and core == core[:size] * (len(core) // size):
+                out.append(("repeat", f"repeats {core[:size]}"))
+                break
+    if len(core) >= 4 and core == core[::-1]:
+        out.append(("palindrome", ""))
+    for i in range(len(core) - 2):
+        a, b, c = core[i:i + 3]
+        if a.isalpha() and b.isalpha() and c.isalpha() and (
+                ord(b) - ord(a) == ord(c) - ord(b) == 1 or ord(a) - ord(b) == ord(b) - ord(c) == 1):
+            out.append(("sequence", a + b + c))
+            break
+    doubles = re.findall(r"([a-z0-9])\1", core)
+    if doubles:
+        out.append(("double", " ".join(d * 2 for d in doubles[:2])))
+    return out
+
+
+def categorize(name):
+    """Every rare category a name belongs to, best first, as [category, detail] pairs.
+    The app decides which categories count as rare (the user can change that at any time)."""
+    n = name.lower()
+    L = len(n)
+    alpha = n.isalpha()
+    out = []
+    if L <= 3:
+        out.append(["og3", ""])
+    is_word = n in WORDS
+    if is_word:
+        out.append(["word", ""])
+    if L == 4 and alpha:
+        out.append(["og4", ""])
+
+    parts = re.split(r"[_.\-]", n)
+    if len(parts) == 2 and all(p in WORDS for p in parts):
+        out.append(["compound", f"{parts[0]} + {parts[1]}"])
+    elif alpha and L >= 6 and not is_word:
+        c = _compound(n)
+        if c:
+            out.append(["compound", c])
+
+    core = n.strip("0123456789_.-")
+    decorated = core != n and len(core) >= 3
+    if decorated and core in WORDS:
+        out.append(["word_extra", f"{core} + {n[len(core):] if n.startswith(core) else n[:n.find(core)]}"])
+
+    if alpha and not is_word and 4 <= L <= 12 and (L >= 5 or pronounceable(n)):
+        near = None
+        for suf in SUFFIXES:
+            if n.endswith(suf) and n[: -len(suf)] in WORDS:
+                near = f"{n[: -len(suf)]} + {suf}"
+                break
+        if not near:
+            hits = sorted(w for w in _neighbors(n, substitute=L >= 5) if w in WORDS)
+            if hits:
+                near = f"looks like {hits[0]}"
+        if near:
+            out.append(["near", near])
+    if alpha and not is_word and 4 <= L <= 10:
+        ana = [w for w in ANAGRAMS.get("".join(sorted(n)), []) if w != n]
+        if ana:
+            out.append(["anagram", f"of {sorted(ana)[0]}"])
+    if alpha and not is_word and 5 <= L <= 12:
+        inner = _contains_word(n)
+        if inner:
+            out.append(["hidden", f"contains {inner}"])
+
+    out.extend([list(p) for p in _patterns(n)])
+
+    if alpha and not is_word and 3 <= L <= 5 and pronounceable(n):
+        out.append(["say_short", ""])
+    elif alpha and not is_word and 6 <= L <= 10 and pronounceable(n):
+        out.append(["say_long", ""])
+    elif decorated and len(core) <= 8 and core not in WORDS and pronounceable(core):
+        out.append(["say_long", f"{core} + extra"])
+    return out
+
+
 # --------------------------------------------------------------------------
 # Name generation
 # --------------------------------------------------------------------------
@@ -713,10 +800,7 @@ class Checker:
                 if state == "taken":
                     self.q.put(("taken", n))
                 elif state == "avail":
-                    tier, label = classify(n)
-                    if tier > self.rare_max:
-                        tier, label = 0, ""
-                    self.q.put(("avail", (n, tier, label)))
+                    self.q.put(("avail", (n, categorize(n))))
                 else:
                     self.q.put(("skipped", 1))
                     any_unknown = True

@@ -48,6 +48,33 @@ GOOD TO KNOW
 - Using your own domain: in docs/index.html, fill in
   const CONFIG = { owner: "your-github-name", repo: "your-repo", ... }
 
+=====================================================================
+EARNING FROM DOWNLOADS (AD LINK)
+=====================================================================
+1. Sign up at an ad-link service (Linkvertise and LootLabs are the
+   common ones for downloads).
+2. Create a new link. As the destination, use your direct download URL:
+   https://github.com/YOUR-NAME/YOUR-REPO/releases/latest/download/OGChecker.exe
+   (for you: https://github.com/rsuf/UserTool/releases/latest/download/OGChecker.exe)
+   Because it says "latest", this one link keeps working for every
+   new version.
+3. On GitHub, open docs/index.html, click the pencil to edit, and find
+   the CONFIG line near the bottom. Paste your ad link between the
+   quotes after adLink, for example:
+     adLink: "https://link-target.net/12345/og-checker",
+4. Optional: set showSource: false to hide the footer link to your
+   GitHub repo.
+5. Commit. Every Download button now opens the ad page in a new tab.
+
+Worth knowing:
+- Anyone who finds your GitHub repo can still download from its
+  Releases page directly, because public repos are public. Most
+  people come through the website, so this rarely matters.
+- Pick the service's least aggressive ad settings if you can.
+  Pop-ups and fake "download" buttons on ad pages make people think
+  the app itself is unsafe, on top of the Windows warning they
+  already see.
+
 Files
   app.py                     the Windows app (window + launcher)
   server.py, checker_core.py the checking engine

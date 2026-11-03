@@ -125,7 +125,7 @@ class Job:
         threading.Thread(target=self.drain_loop, daemon=True).start()
 
     def reset_results(self):
-        self.results = {"rare": [], "avail": [], "locked": [], "taken": []}
+        self.results = {"avail": [], "locked": [], "taken": []}
         self.stats = {"checked": 0, "avail": 0, "taken": 0, "rare": 0, "skipped": 0, "locked": 0}
         self.status = "Ready"
         self.notice = ""
@@ -169,7 +169,7 @@ class Job:
 
     def handle(self, kind, data):
         if kind == "avail":
-            name, tier, label = data
+            name, cats = data
             self.stats["checked"] += 1
             info = HISTORY.lock_info(name, time.time()) if self.platform == "Minecraft" else None
             if info:
@@ -179,12 +179,8 @@ class Job:
                 self.results["locked"].append({"name": name, "label": f"drops in {when} · seen {ago}d ago"})
                 return
             self.stats["avail"] += 1
-            self.results["avail"].append({"name": name})
-            # OG = 3 characters or fewer, or 4 letters. Always worth showing, even if it isn't a word.
-            og = len(name) <= 3 or (len(name) == 4 and name.isalpha())
-            if tier or og:
-                self.stats["rare"] += 1
-                self.results["rare"].append({"name": name, "tier": tier or 9, "label": label, "og": og})
+            # Every category the name fits. The app decides which ones count as rare (user setting).
+            self.results["avail"].append({"name": name, "cats": cats})
         elif kind == "taken":
             self.stats["checked"] += 1
             self.stats["taken"] += 1
@@ -393,7 +389,7 @@ class Handler(BaseHTTPRequestHandler):
             cid = self.client_id(qs)
             if not cid:
                 return self.send_json({"error": "missing client id"}, 400)
-            offsets = {k: int(qs.get(k, ["0"])[0] or 0) for k in ("rare", "avail", "locked", "taken")}
+            offsets = {k: int(qs.get(k, ["0"])[0] or 0) for k in ("avail", "locked", "taken")}
             run_id = int(qs.get("run", ["0"])[0] or 0)
             LAST_PAGE_SEEN[0] = time.time()
             self.send_json(get_job(cid).snapshot(offsets, run_id))

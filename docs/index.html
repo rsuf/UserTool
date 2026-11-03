@@ -309,9 +309,13 @@ footer a:hover{color:var(--text)}
 
 <script>
 /* Download settings.
-   On GitHub Pages this page finds your repository by itself.
-   On your own domain, fill in your GitHub username and repository name below. */
-const CONFIG = { owner: "", repo: "", file: "OGChecker.exe" };
+   owner / repo  On GitHub Pages these are found automatically. On your own domain,
+                 fill in your GitHub username and repository name.
+   adLink        Optional. Paste your ad link here (Linkvertise, LootLabs, etc.) and every
+                 Download button sends people through it. Point the ad link at:
+                 https://github.com/YOUR-NAME/YOUR-REPO/releases/latest/download/OGChecker.exe
+   showSource    false hides the "Source code" link in the footer. */
+const CONFIG = { owner: "rsuf", repo: "UserTool", file: "OGChecker.exe", adLink: "https://link-hub.net/9796000/jhJaEwxyv1wz", showSource: true };
 
 function repo(){
   if(CONFIG.owner && CONFIG.repo) return CONFIG;
@@ -329,14 +333,21 @@ const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 let ready = false;
 
 function showNote(html){ note.innerHTML = html; note.classList.add("show"); }
+const AD = (CONFIG.adLink || "").trim();
 document.querySelectorAll("a.dl[data-download]").forEach(a=>{
-  if(R){ a.href = `https://github.com/${R.owner}/${R.repo}/releases/latest/download/${R.file}`; a.setAttribute("download",""); }
+  if(AD){ a.href = AD; a.target = "_blank"; a.rel = "noopener"; }
+  else if(R){ a.href = `https://github.com/${R.owner}/${R.repo}/releases/latest/download/${R.file}`; a.setAttribute("download",""); }
 });
 if(R) document.getElementById("srcLink").href = `https://github.com/${R.owner}/${R.repo}`;
+if(CONFIG.showSource === false) document.getElementById("srcLink").remove();
 
 document.addEventListener("click", e=>{
   const a = e.target.closest("a.dl[data-download]");
   if(!a) return;
+  if(AD){  // ad link set: let the click through to the ad page
+    if(isMobile) showNote("OG Checker runs on <b>Windows PCs</b>. Download it on your computer.");
+    return;
+  }
   if(!R){
     e.preventDefault();
     showNote("<b>Preview mode.</b> The download works once this page is on GitHub Pages, or after you fill in CONFIG at the bottom of this file.");
@@ -366,7 +377,7 @@ if(R){
       document.querySelectorAll("[data-vershort]").forEach(s=> s.textContent = "Version " + v);
     })
     .catch(status => {
-      if(status === 404){
+      if(status === 404 && !AD){
         document.querySelectorAll("a.dl").forEach(a=> a.classList.add("wait"));
         document.querySelectorAll("[data-vershort]").forEach(s=> s.textContent = "Build in progress");
       } else ready = true;  // GitHub API limit or offline: the direct link still works

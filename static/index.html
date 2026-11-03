@@ -68,6 +68,23 @@ details.note p{margin:8px 0 0;line-height:1.55}
 .seg button:hover{color:var(--text)}
 .seg button.on{background:var(--text);color:var(--bg)}
 .hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.5}
+details.rc{margin-top:10px}
+details.rc summary{cursor:pointer;list-style:none;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+details.rc summary::-webkit-details-marker{display:none}
+details.rc summary svg{transition:transform .15s}
+details.rc[open] summary svg{transform:rotate(90deg)}
+.rgroup{margin-top:12px}
+.rg-title{font-size:11px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px}
+.rrow{display:flex;align-items:center;gap:10px;width:100%;padding:6px 0;color:var(--muted);font-size:12.5px;text-align:left;transition:color .12s}
+.rrow:hover{color:var(--text)}
+.rrow code{margin-left:auto;font:500 11px var(--mono);color:var(--dim)}
+.box{width:14px;height:14px;border:1px solid var(--border3);border-radius:4px;flex:none;display:grid;place-items:center;transition:background .12s,border-color .12s}
+.rrow.on{color:var(--text)}
+.rrow.on .box{background:var(--text);border-color:var(--text)}
+.rrow.on .box::after{content:"";width:7px;height:3.5px;border-left:1.6px solid var(--bg);border-bottom:1.6px solid var(--bg);transform:translateY(-1px) rotate(-45deg)}
+.rare-actions{display:flex;gap:14px;margin-top:10px}
+.rare-actions button{font-size:11.5px;color:var(--dim);text-decoration:underline;text-underline-offset:2px}
+.rare-actions button:hover{color:var(--text)}
 
 .field-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 11px;outline:none;transition:border-color .15s}
 .field-input:focus{border-color:var(--border3)}
@@ -242,14 +259,19 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:22px 24
           </div>
         </div>
 
-        <div class="section">
-          <div class="label">Rare filter</div>
-          <div class="seg" id="rareSeg">
-            <button data-rare="strict">Strict</button>
-            <button data-rare="normal">Normal</button>
-            <button data-rare="loose">Loose</button>
+        <div class="section" id="rareSection">
+          <div class="label">Rare tab <small>updates live</small></div>
+          <div class="seg" id="rarePreset">
+            <button data-preset="words">Words</button>
+            <button data-preset="balanced">Balanced</button>
+            <button data-preset="all">Everything</button>
           </div>
           <div class="hint" id="rareHint"></div>
+          <details class="rc" id="rareCustom">
+            <summary><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>Choose what counts as rare</summary>
+            <div id="rareList"></div>
+            <div class="rare-actions"><button id="rareAll">Select all</button><button id="rareNone">Clear all</button></div>
+          </details>
         </div>
 
         <details class="adv">
@@ -276,7 +298,7 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:22px 24
       <div class="stats">
         <div class="stat"><div class="k">Checked</div><div class="v" id="sChecked">0</div></div>
         <div class="stat"><div class="k">Available</div><div class="v" id="sAvail">0</div></div>
-        <div class="stat"><div class="k">OG &amp; rare</div><div class="v" id="sRare">0</div></div>
+        <div class="stat"><div class="k">Rare</div><div class="v" id="sRare">0</div></div>
         <div class="stat"><div class="k">Taken</div><div class="v" id="sTaken">0</div></div>
         <div class="stat"><div class="k">Unknown</div><div class="v" id="sSkipped">0</div></div>
       </div>
@@ -295,6 +317,7 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:22px 24
             <input id="filter" type="text" placeholder="Filter names" autocomplete="off" spellcheck="false">
           </label>
           <button class="btn" id="ogOnly" title="Only 3-character names and 4-letter names">OG only</button>
+          <button class="btn" id="rareBtn" title="Choose which kinds of names appear in the Rare tab">Rare settings</button>
           <span class="spacer"></span>
           <button class="btn" id="copyAll">Copy all</button>
           <button class="btn" id="download">Export</button>
@@ -312,7 +335,7 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:22px 24
 const $ = s => document.querySelector(s);
 const IN_APP = new URLSearchParams(location.search).has("app");
 const TABS = [
-  {id:"rare", title:"OG & rare"},
+  {id:"rare", title:"Rare"},
   {id:"avail", title:"Available"},
   {id:"locked", title:"Drops", mc:true},
   {id:"taken", title:"Taken"},
@@ -322,12 +345,37 @@ const MODE_HINT = {
   brute:"Random 3L, 4L or 4C combinations at the length you pick. Best for OG hunting.",
   keyword:"Every free variation of your word, like 1wolf, wolfx or x.wolf.",
 };
-const RARE_HINT = {
-  strict:"OGs, dictionary words and two-word combos.",
-  normal:"Adds word-like names (wolfz) and clean patterns (abba, abcd).",
-  loose:"Adds anything pronounceable (velmora).",
+// Rare categories. The engine tags each available name with every category it fits;
+// the Rare tab shows a name if any of its categories is switched on.
+const RCATS = [
+  {group:"Words", items:[["word","Real words","ember"],["compound","Two words","firewolf"],["word_extra","Word + numbers","wolf99"],
+                         ["near","Near-words","wolfz"],["anagram","Anagrams of words","rhic"],["hidden","Hidden words","xbearx"]]},
+  {group:"Patterns", items:[["double","Double letters","bxx"],["repeat","Repeating","abab"],["palindrome","Palindromes","abba"],["sequence","Letter runs","abcx"]]},
+  {group:"Sound", items:[["say_short","Pronounceable, short","kelo"],["say_long","Pronounceable, long","velmora"]]},
+  {group:"Length", items:[["og3","Any 3 characters","x9k"],["og4","Any 4 letters","qzvw"]]},
+];
+const CAT_ORDER = ["og3","word","og4","compound","word_extra","near","anagram","palindrome","repeat","sequence","hidden","double","say_short","say_long"];
+const RANK = Object.fromEntries(CAT_ORDER.map((c,i)=>[c,i]));
+const CAT_TAG = {word:"word",compound:"2 words",word_extra:"word+",near:"near-word",anagram:"anagram",hidden:"hidden word",
+                 palindrome:"palindrome",repeat:"repeat",sequence:"run",double:"double",say_short:"sayable",say_long:"sayable",og3:"",og4:""};
+const PRESETS = {
+  words:["word","compound"],
+  balanced:["word","compound","word_extra","near","anagram","palindrome","repeat","sequence"],
+  all:CAT_ORDER.slice(),
 };
-const TIER_NAME = {1:"word",2:"2 words",3:"word+",4:"semi",5:"pattern",6:"sayable"};
+const PRESET_HINT = {
+  words:"Only real words and two-word names.",
+  balanced:"Words, near-words, anagrams and clean patterns.",
+  all:"Every interesting type, including double letters and any short name.",
+};
+let ENABLED = new Set();
+function rareOf(i){ let best=null; for(const c of (i.cats||[])) if(ENABLED.has(c[0]) && (!best || RANK[c[0]]<RANK[best[0]])) best=c; return best; }
+function rareSort(a,b){ return (RANK[a.b[0]]-RANK[b.b[0]]) || (a.name.length-b.name.length) || (a.name<b.name?-1:1); }
+function rebuildRare(){
+  state.rare = [];
+  for(const i of state.results.avail){ const b = rareOf(i); if(b) state.rare.push({name:i.name, b}); }
+  state.rare.sort(rareSort);
+}
 // Name classes: 3L = 3 letters, 4C = 4 mixed characters, 4N = 4 numbers
 function cls(n){ const L=n.length; return /^[a-z]+$/.test(n) ? L+"L" : /^[0-9]+$/.test(n) ? L+"N" : L+"C"; }
 function isOG(n){ return n.length<=3 || (n.length===4 && /^[a-z]+$/.test(n)); }
@@ -341,12 +389,12 @@ const ICON = {
 };
 
 let CFG, S = load();
-let state = {runId:0, running:false, stats:{}, results:{rare:[],avail:[],locked:[],taken:[]}, total:0, platform:S.platform};
+let state = {runId:0, running:false, stats:{}, results:{avail:[],locked:[],taken:[]}, rare:[], total:0, platform:S.platform};
 let tab = "rare", renderQueued = false, online = true, quitting = false, ogOnly = false;
 
 function load(){
   const d = {platform:"Minecraft", mode:"words", minLen:3, maxLen:6, digits:false, underscore:false, periods:false,
-             hyphens:false, rare:"normal", limit:5000, random:true, keyword:"", perPlat:{}};
+             hyphens:false, rareCats:null, limit:5000, random:true, keyword:"", perPlat:{}};
   try{ return Object.assign(d, JSON.parse(localStorage.getItem("unc-settings")||"{}")); }catch(e){ return d; }
 }
 function save(){ try{ localStorage.setItem("unc-settings", JSON.stringify(S)); }catch(e){} }
@@ -400,8 +448,7 @@ function syncUI(){
     b.title = allow[k] ? "" : `${S.platform} usernames can't contain this`;
   });
   $("#charSection").style.display = S.mode==="words" ? "none" : "";
-  document.querySelectorAll("#rareSeg button").forEach(b=>b.classList.toggle("on", b.dataset.rare===S.rare));
-  $("#rareHint").textContent = RARE_HINT[S.rare];
+  paintRareSettings();
   S.limit = Math.min(S.limit, CFG.maxNames);
   $("#limit").value = S.limit; $("#limit").max = CFG.maxNames;
   $("#threads").value = p.threads; $("#delay").value = p.delay;
@@ -454,7 +501,12 @@ function wire(){
   $("#minLen").onchange = e=>{ S.minLen=+e.target.value; if(S.maxLen<S.minLen) S.maxLen=S.minLen; clampLen(); syncUI(); };
   $("#maxLen").onchange = e=>{ S.maxLen=+e.target.value; if(S.minLen>S.maxLen) S.minLen=S.maxLen; clampLen(); syncUI(); };
   document.querySelectorAll("[data-char]").forEach(b=>b.onclick=()=>{ S[b.dataset.char]=!S[b.dataset.char]; syncUI(); });
-  document.querySelectorAll("#rareSeg button").forEach(b=>b.onclick=()=>{ S.rare=b.dataset.rare; syncUI(); });
+  document.querySelectorAll("#rarePreset button").forEach(b=>b.onclick=()=>setRare(PRESETS[b.dataset.preset]));
+  $("#rareList").onclick = e=>{ const r=e.target.closest(".rrow"); if(!r) return;
+    const set = new Set(S.rareCats); set.has(r.dataset.cat) ? set.delete(r.dataset.cat) : set.add(r.dataset.cat); setRare([...set]); };
+  $("#rareAll").onclick = ()=>setRare(PRESETS.all);
+  $("#rareNone").onclick = ()=>setRare([]);
+  $("#rareBtn").onclick = ()=>{ const d=$("#rareCustom"); d.open = true; $("#rareSection").scrollIntoView({behavior:"smooth", block:"start"}); };
   $("#limit").onchange = e=>{ S.limit=Math.max(1,Math.min(CFG.maxNames,Math.round(+e.target.value||1000))); syncUI(); };
   $("#threads").onchange = e=>{ pp().threads=Math.max(1,Math.min(CFG.public?spec().threads:32,Math.round(+e.target.value||1))); syncUI(); };
   $("#delay").onchange = e=>{ pp().delay=Math.max(CFG.public?spec().delay:0,Math.min(120,+e.target.value||0)); syncUI(); };
@@ -477,7 +529,7 @@ async function toggleRun(){
   if(state.running){ $("#goBtn").disabled=true; await api("/api/stop",{}); setTimeout(()=>{$("#goBtn").disabled=false;},3000); return; }
   const p = pp();
   const body = {platform:S.platform, mode:S.mode, minLen:S.minLen, maxLen:S.maxLen, digits:S.digits, underscore:S.underscore,
-                periods:S.periods, hyphens:S.hyphens, rare:S.rare, limit:S.limit, threads:p.threads, delay:p.delay,
+                periods:S.periods, hyphens:S.hyphens, limit:S.limit, threads:p.threads, delay:p.delay,
                 random:S.random, keyword:S.keyword};
   $("#goBtn").disabled = true;
   try{
@@ -487,9 +539,27 @@ async function toggleRun(){
   } finally { $("#goBtn").disabled = false; }
 }
 
+/* ---------- rare settings ---------- */
+function buildRareList(){
+  $("#rareList").innerHTML = RCATS.map(g=>`<div class="rgroup"><div class="rg-title">${g.group}</div>` +
+    g.items.map(([k,label,ex])=>`<button class="rrow" data-cat="${k}"><span class="box"></span><span>${label}</span><code>${ex}</code></button>`).join("") + `</div>`).join("");
+}
+function setRare(list){
+  S.rareCats = CAT_ORDER.filter(c=>list.includes(c));
+  ENABLED = new Set(S.rareCats);
+  rebuildRare(); paintRareSettings(); paintStats(); queueRender(); save();
+}
+function paintRareSettings(){
+  const cur = [...ENABLED].sort().join();
+  const match = Object.keys(PRESETS).find(k=>[...PRESETS[k]].sort().join()===cur);
+  document.querySelectorAll("#rarePreset button").forEach(b=>b.classList.toggle("on", b.dataset.preset===match));
+  $("#rareHint").textContent = match ? PRESET_HINT[match] : `Custom: ${ENABLED.size} of ${CAT_ORDER.length} types.`;
+  document.querySelectorAll(".rrow").forEach(r=>r.classList.toggle("on", ENABLED.has(r.dataset.cat)));
+}
+
 /* ---------- results ---------- */
 function resetLocal(){
-  state.results = {rare:[],avail:[],locked:[],taken:[]}; state.runId = -1;
+  state.results = {avail:[],locked:[],taken:[]}; state.rare = []; state.runId = -1;
   $("#filter").value = ""; queueRender();
 }
 async function poll(){
@@ -498,15 +568,19 @@ async function poll(){
     for(const k in state.results) q.set(k, state.results[k].length);
     const r = await api("/api/poll?"+q);
     if(!online){ online=true; $("#offline").style.display="none"; }
-    if(r.runId !== state.runId){ state.results = {rare:[],avail:[],locked:[],taken:[]}; state.runId = r.runId; }
+    if(r.runId !== state.runId){ state.results = {avail:[],locked:[],taken:[]}; state.rare = []; state.runId = r.runId; }
     let changed = false;
-    for(const k in r.new){ if(r.new[k].length){ state.results[k].push(...r.new[k]); changed = true; } }
-    if(changed && r.new.rare.length) state.results.rare.sort((a,b)=>(b.og-a.og) || (b.og ? a.name.length-b.name.length : 0) || (a.tier-b.tier) || (a.name.length-b.name.length));
+    for(const k in r.new){ if(state.results[k] && r.new[k].length){ state.results[k].push(...r.new[k]); changed = true; } }
+    if(r.new.avail && r.new.avail.length){
+      let added = false;
+      for(const i of r.new.avail){ const b = rareOf(i); if(b){ state.rare.push({name:i.name, b}); added = true; } }
+      if(added) state.rare.sort(rareSort);
+    }
     const wasRunning = state.running;
     Object.assign(state, {running:r.running, stats:r.stats, total:r.total, status:r.status, notice:r.notice, elapsed:r.elapsed, platform:r.platform});
     paintStats();
     if(wasRunning !== r.running) paintRunning();
-    if(wasRunning && !r.running && r.status==="Finished") toast(`Done. ${fmt(r.stats.avail)} available, ${fmt(r.stats.rare)} OG or rare`);
+    if(wasRunning && !r.running && r.status==="Finished") toast(`Done. ${fmt(r.stats.avail)} available, ${fmt(state.rare.length)} rare`);
     if(changed) queueRender();
   }catch(e){
     if(online){ online=false; $("#offline").style.display="grid"; }
@@ -529,7 +603,7 @@ function paintStats(){
   const s = state.stats||{};
   $("#sChecked").textContent = fmt(s.checked||0);
   $("#sAvail").textContent = fmt(s.avail||0);
-  $("#sRare").textContent = fmt(s.rare||0);
+  $("#sRare").textContent = fmt(state.rare.length);
   $("#sTaken").textContent = fmt(s.taken||0);
   $("#sSkipped").textContent = fmt(s.skipped||0);
   const done = (s.checked||0)+(s.skipped||0), tot = state.total||0;
@@ -549,7 +623,7 @@ function paintStats(){
 }
 function paintTabs(){
   const s = state.stats||{};
-  const counts = {rare:s.rare, avail:s.avail, locked:s.locked, taken:s.taken};
+  const counts = {rare:state.rare.length, avail:s.avail, locked:s.locked, taken:s.taken};
   const showLocked = state.platform==="Minecraft" || S.platform==="Minecraft";
   if(!showLocked && tab==="locked") tab = "rare";
   $("#tabs").innerHTML = TABS.filter(t=>!t.mc || showLocked).map(t=>
@@ -561,7 +635,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&
 const LIMIT = 600;
 function visible(){
   const f = $("#filter").value.trim().toLowerCase();
-  let items = state.results[tab]||[];
+  let items = tab==="rare" ? state.rare : (state.results[tab]||[]);
   if(f) items = items.filter(i=>i.name.includes(f));
   if(ogOnly) items = items.filter(i=>isOG(i.name));
   return items;
@@ -575,11 +649,11 @@ function render(){
   list.innerHTML = shown.map(i=>{
     if(tab==="taken") return `<button class="name taken" data-n="${esc(i.name)}" title="Click to copy"><span class="t">${esc(i.name)}</span><span class="s">${cls(i.name)}</span>${ICON.copy}</button>`;
     const og = isOG(i.name);
-    let meta = `<span class="tag${og?" og":""}">${og?"OG ":""}${cls(i.name)}</span>`;
-    const say = /^pronounceable/.test(i.label||"");
-    const tier = say ? "sayable" : TIER_NAME[i.tier];
-    if(tab==="rare" && tier) meta += `<span class="tag tier">${tier}</span>`;
-    const label = i.label && i.label!=="word" && i.label!=="pronounceable" ? `<em>${esc(i.label)}</em>` : "";
+    let meta = `<span class="tag${og?" og":""}">${og?"OG ":""}${cls(i.name)}</span>`, label = "";
+    if(tab==="rare"){
+      if(CAT_TAG[i.b[0]]) meta += `<span class="tag tier">${CAT_TAG[i.b[0]]}</span>`;
+      if(i.b[1]) label = `<em>${esc(i.b[1])}</em>`;
+    } else if(i.label) label = `<em>${esc(i.label)}</em>`;
     return `<button class="name${og?" og":""}" data-n="${esc(i.name)}" title="Click to copy"><span class="t">${esc(i.name)}</span><span class="s">${meta}${label}</span>${ICON.copy}</button>`;
   }).join("") + (items.length>LIMIT ? `<div class="more">Showing ${fmt(LIMIT)} of ${fmt(items.length)}${newestFirst?", newest first":", best first"}. Use the filter or Export to see all.</div>` : "");
 }
@@ -588,8 +662,9 @@ function emptyState(){
   if($("#filter").value.trim() || ogOnly) return box(ICON.search, "No matches", "Nothing in this list matches the current filter.");
   const checked = (state.stats||{}).checked||0;
   return {
-    rare: checked ? box(ICON.star, "No OG or rare names yet", "OG means 3 characters or 4 letters. Rare means dictionary words, near-words and clean patterns. Try Words mode, or a length of 3 to 4.")
-                  : box(ICON.star, "Ready", "Pick a platform and press Start. OG names (3L, 3C, 4L) appear at the top, followed by dictionary words, near-words and patterns."),
+    rare: !ENABLED.size ? box(ICON.star, "Nothing counts as rare", "Every rare type is switched off. Open Rare settings to choose what appears here.")
+        : checked ? box(ICON.star, "No rare names yet", "Only the name types switched on under Rare tab appear here. Change them any time and the results update instantly.")
+                  : box(ICON.star, "Ready", "Pick a platform and press Start. Real words, near-words and clean patterns appear here, best first. Choose exactly what counts as rare under Rare tab."),
     avail: box(ICON.check, "No available names yet", "Every name that is free to register appears here."),
     locked: box(ICON.clock, "No drops tracked yet", "Minecraft holds a released name for 37 days. Names this app saw taken that are now free appear here with an estimated drop window."),
     taken: box(ICON.x, "No taken names yet", "Names someone already owns appear here."),
@@ -613,7 +688,7 @@ async function download(){
   if(!Object.values(r).some(a=>a.length)) return toast("No results yet");
   const sec = (title, arr, f) => `=== ${title} (${arr.length}) ===\n` + arr.map(f).join("\n") + "\n\n";
   const txt = `OG Checker - ${state.platform} - ${new Date().toLocaleString()}\n\n`
-    + sec("OG & RARE", r.rare, i=>`${i.name}   [${isOG(i.name)?"OG ":""}${cls(i.name)}${i.label?", "+i.label:""}]`)
+    + sec("RARE", state.rare, i=>`${i.name}   [${isOG(i.name)?"OG ":""}${cls(i.name)}${CAT_TAG[i.b[0]]?", "+CAT_TAG[i.b[0]]:""}${i.b[1]?", "+i.b[1]:""}]`)
     + sec("AVAILABLE", r.avail, i=>i.name)
     + (r.locked.length ? sec("UPCOMING DROPS", r.locked, i=>`${i.name}   [${i.label}]`) : "")
     + sec("TAKEN", r.taken, i=>i.name);
@@ -648,7 +723,9 @@ async function download(){
     $("#offlineMsg").textContent = "The server is restarting. This page will reconnect by itself in a moment.";
     $("#limitHint").textContent = `(max ${fmt(CFG.maxNames)})`;
   }
-  buildPlatforms(); clampLen(); wire(); syncUI(); paintTabs(); render(); poll();
+  if(!Array.isArray(S.rareCats)) S.rareCats = PRESETS.balanced.slice();
+  ENABLED = new Set(S.rareCats);
+  buildRareList(); buildPlatforms(); clampLen(); wire(); syncUI(); paintTabs(); render(); poll();
 })();
 </script>
 </body>
