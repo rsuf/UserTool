@@ -59,30 +59,72 @@ def roblox_check(session, names):
     return {n: ("taken" if n.lower() in taken else "avail") for n in names}, 0
 
 
+_TT_DATA = re.compile(r'<script[^>]*id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.*?)</script>', re.S)
+_TT_SIGI = re.compile(r'<script[^>]*id="SIGI_STATE"[^>]*>(.*?)</script>', re.S)
+
+
+def _tiktok_profile(html):
+    """Pull the profile block out of a TikTok profile page.
+    Returns (status_code, user_dict) or None if the page has no profile data (blocked, captcha...)."""
+    m = _TT_DATA.search(html)
+    if m:
+        try:
+            scope = json.loads(m.group(1)).get("__DEFAULT_SCOPE__", {})
+        except ValueError:
+            return None
+        detail = scope.get("webapp.user-detail")
+        if not isinstance(detail, dict):
+            return None
+        user = (detail.get("userInfo") or {}).get("user") or {}
+        return detail.get("statusCode"), user
+    m = _TT_SIGI.search(html)  # older page layout
+    if m:
+        try:
+            users = (json.loads(m.group(1)).get("UserModule") or {}).get("users") or {}
+        except ValueError:
+            return None
+        user = next(iter(users.values()), {}) if users else {}
+        return (0 if user else 10221), user
+    return None
+
+
 def tiktok_check(session, names):
+    """Reads the profile data block TikTok embeds in every profile page.
+    statusCode 0 = account exists, 10222 = private account (exists), 10221 = no such user.
+    Only that block is trusted: the rest of the page contains text like "This account is private"
+    on every profile, which is what made every name look taken before."""
     name = names[0]
     r = session.get(f"https://www.tiktok.com/@{name}", headers=BROWSER_HEADERS, timeout=15)
     if r.status_code in (403, 429):
+        session.last_reason = f"TikTok answered HTTP {r.status_code}"
         return None, 30
-    txt = r.text
-    # Any sign the account exists - including private ones - means the name is taken
-    private_markers = ('"statusCode":10222', '"privateAccount":true', '"secret":true',
-                       "This account is private")
-    if (re.search(r'"uniqueId":"%s"' % re.escape(name), txt, re.I)
-            or any(m in txt for m in private_markers)
-            or ('"statusCode":0' in txt and '"userInfo"' in txt)):
+    found = _tiktok_profile(r.text)
+    if found is None:
+        session.last_reason = f"TikTok sent a page without profile data (HTTP {r.status_code})"
+        return {name: "unknown"}, 0
+    code, user = found
+    session.last_reason = f"TikTok profile status {code}"
+    if code == 0 and user:
+        uid = str(user.get("uniqueId", "")).lower()
+        return {name: "taken" if (not uid or uid == name.lower()) else "unknown"}, 0
+    if code == 10222:  # private account - it exists
         return {name: "taken"}, 0
-    if '"statusCode":10221' in txt:
+    if code == 10221:
         # The page says "not found" - get a second opinion before calling it available.
-        # (Pages can wrongly say "not found" for accounts that exist but are restricted.)
         o = session.get("https://www.tiktok.com/oembed", params={"url": f"https://www.tiktok.com/@{name}"},
                         headers=BROWSER_HEADERS, timeout=15)
         if o.status_code in (403, 429):
             return None, 30
         if o.status_code == 200:
+            try:
+                if o.json().get("author_unique_id", name).lower() == name.lower():
+                    return {name: "taken"}, 0
+            except ValueError:
+                pass
             return {name: "taken"}, 0
         if o.status_code in (400, 404):
             return {name: "avail"}, 0
+        session.last_reason = f"TikTok second check answered HTTP {o.status_code}"
         return {name: "unknown"}, 0
     return {name: "unknown"}, 0
 
@@ -335,8 +377,18 @@ LOCK_DAYS = 37
 DAY = 86400
 
 
+def data_dir():
+    """Where the app keeps its memory. The .exe uses %APPDATA%\\OG Checker so it doesn't
+    litter whatever folder the .exe sits in (usually Downloads). From source: next to the code."""
+    if getattr(sys, "frozen", False) and os.environ.get("APPDATA"):
+        path = os.path.join(os.environ["APPDATA"], "OG Checker")
+        os.makedirs(path, exist_ok=True)
+        return path
+    return app_dir()
+
+
 def history_path():
-    return os.path.join(app_dir(), "minecraft_name_history.json")
+    return os.path.join(data_dir(), "minecraft_name_history.json")
 
 
 def load_history():

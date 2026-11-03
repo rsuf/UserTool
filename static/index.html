@@ -83,8 +83,12 @@ details.rc[open] summary svg{transform:rotate(90deg)}
 .rrow.on .box{background:var(--text);border-color:var(--text)}
 .rrow.on .box::after{content:"";width:7px;height:3.5px;border-left:1.6px solid var(--bg);border-bottom:1.6px solid var(--bg);transform:translateY(-1px) rotate(-45deg)}
 .rare-actions{display:flex;gap:14px;margin-top:10px}
+.mem-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12.5px;color:var(--text)}
+.mem-count{margin-top:10px;border:1px solid var(--border);border-radius:9px;padding:10px 12px;background:var(--surface);font-size:12px;color:var(--dim);line-height:1.55}
+.mem-count b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
 .rare-actions button{font-size:11.5px;color:var(--dim);text-decoration:underline;text-underline-offset:2px}
 .rare-actions button:hover{color:var(--text)}
+.rare-actions button:disabled{opacity:.4;cursor:default;text-decoration:none}
 
 .field-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 11px;outline:none;transition:border-color .15s}
 .field-input:focus{border-color:var(--border3)}
@@ -274,6 +278,14 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:22px 24
           </details>
         </div>
 
+        <div class="section" id="memSection">
+          <div class="label">Memory</div>
+          <div class="mem-row"><span>Skip names already seen taken</span><button class="switch" id="skipKnown" aria-label="Skip names already seen taken"></button></div>
+          <div class="hint" id="memHint"></div>
+          <div class="mem-count" id="memCount">Loading</div>
+          <div class="rare-actions"><button id="memForget">Forget this platform</button><button id="memForgetAll">Forget everything</button></div>
+        </div>
+
         <details class="adv">
           <summary><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>Advanced</summary>
           <div class="grid2">
@@ -394,7 +406,7 @@ let tab = "rare", renderQueued = false, online = true, quitting = false, ogOnly 
 
 function load(){
   const d = {platform:"Minecraft", mode:"words", minLen:3, maxLen:6, digits:false, underscore:false, periods:false,
-             hyphens:false, rareCats:null, limit:5000, random:true, keyword:"", perPlat:{}};
+             hyphens:false, rareCats:null, skipKnown:true, limit:5000, random:true, keyword:"", perPlat:{}};
   try{ return Object.assign(d, JSON.parse(localStorage.getItem("unc-settings")||"{}")); }catch(e){ return d; }
 }
 function save(){ try{ localStorage.setItem("unc-settings", JSON.stringify(S)); }catch(e){} }
@@ -449,6 +461,7 @@ function syncUI(){
   });
   $("#charSection").style.display = S.mode==="words" ? "none" : "";
   paintRareSettings();
+  paintMemory();
   S.limit = Math.min(S.limit, CFG.maxNames);
   $("#limit").value = S.limit; $("#limit").max = CFG.maxNames;
   $("#threads").value = p.threads; $("#delay").value = p.delay;
@@ -511,6 +524,9 @@ function wire(){
   $("#threads").onchange = e=>{ pp().threads=Math.max(1,Math.min(CFG.public?spec().threads:32,Math.round(+e.target.value||1))); syncUI(); };
   $("#delay").onchange = e=>{ pp().delay=Math.max(CFG.public?spec().delay:0,Math.min(120,+e.target.value||0)); syncUI(); };
   $("#random").onclick = ()=>{ S.random=!S.random; syncUI(); };
+  $("#skipKnown").onclick = ()=>{ S.skipKnown=!S.skipKnown; syncUI(); };
+  $("#memForget").onclick = ()=>forgetMemory(S.platform);
+  $("#memForgetAll").onclick = ()=>forgetMemory(null);
   $("#resetHist").onclick = async ()=>{
     if(!confirm("Forget every Minecraft name the app remembers seeing taken? Drop tracking will start over.")) return;
     const r = await api("/api/reset-history", {}); toast(`Forgot ${fmt(r.forgot)} names`);
@@ -529,7 +545,7 @@ async function toggleRun(){
   if(state.running){ $("#goBtn").disabled=true; await api("/api/stop",{}); setTimeout(()=>{$("#goBtn").disabled=false;},3000); return; }
   const p = pp();
   const body = {platform:S.platform, mode:S.mode, minLen:S.minLen, maxLen:S.maxLen, digits:S.digits, underscore:S.underscore,
-                periods:S.periods, hyphens:S.hyphens, limit:S.limit, threads:p.threads, delay:p.delay,
+                periods:S.periods, hyphens:S.hyphens, skipKnown:S.skipKnown, limit:S.limit, threads:p.threads, delay:p.delay,
                 random:S.random, keyword:S.keyword};
   $("#goBtn").disabled = true;
   try{
@@ -537,6 +553,34 @@ async function toggleRun(){
     if(!r.ok){ toast(r.error); return; }
     resetLocal(); tab = "rare"; state.running = true; paintRunning();
   } finally { $("#goBtn").disabled = false; }
+}
+
+/* ---------- memory ---------- */
+let MEM = {};
+async function loadMemory(){
+  try{ MEM = (await api("/api/memory")).counts || {}; }catch(e){}
+  paintMemory();
+}
+function paintMemory(){
+  $("#skipKnown").classList.toggle("on", !!S.skipKnown);
+  const here = MEM[S.platform]||0, all = Object.values(MEM).reduce((a,b)=>a+b,0);
+  $("#memHint").textContent = S.skipKnown
+    ? "Names found taken are never checked again until you clear them."
+    : "Every name is checked, including remembered ones. Use this to catch Minecraft drops.";
+  $("#memCount").innerHTML = `<b>${fmt(here)}</b> taken ${S.platform} names remembered` +
+    (all>here ? `<br><b>${fmt(all)}</b> across all platforms` : "");
+  $("#memForget").textContent = `Forget ${S.platform}`;
+  $("#memForget").disabled = !here; $("#memForgetAll").disabled = !all;
+}
+async function forgetMemory(plat){
+  if(state.running) return toast("Stop the check first");
+  const n = plat ? (MEM[plat]||0) : Object.values(MEM).reduce((a,b)=>a+b,0);
+  if(!n) return;
+  if(!confirm(plat ? `Forget ${fmt(n)} taken ${plat} names? They'll be checked again next time.`
+                   : `Forget all ${fmt(n)} remembered names on every platform?`)) return;
+  const r = await api("/api/memory/reset", {platform: plat});
+  if(r.ok){ toast(`Forgot ${fmt(r.forgot)} names`); loadMemory(); }
+  else toast(r.error || "Couldn't clear the memory");
 }
 
 /* ---------- rare settings ---------- */
@@ -577,9 +621,10 @@ async function poll(){
       if(added) state.rare.sort(rareSort);
     }
     const wasRunning = state.running;
-    Object.assign(state, {running:r.running, stats:r.stats, total:r.total, status:r.status, notice:r.notice, elapsed:r.elapsed, platform:r.platform});
+    Object.assign(state, {running:r.running, stats:r.stats, total:r.total, status:r.status, notice:r.notice, elapsed:r.elapsed, platform:r.platform, memSkipped:r.memSkipped||0});
     paintStats();
     if(wasRunning !== r.running) paintRunning();
+    if(wasRunning && !r.running) loadMemory();
     if(wasRunning && !r.running && r.status==="Finished") toast(`Done. ${fmt(r.stats.avail)} available, ${fmt(state.rare.length)} rare`);
     if(changed) queueRender();
   }catch(e){
@@ -607,10 +652,12 @@ function paintStats(){
   $("#sTaken").textContent = fmt(s.taken||0);
   $("#sSkipped").textContent = fmt(s.skipped||0);
   const done = (s.checked||0)+(s.skipped||0), tot = state.total||0;
-  const pct = tot ? Math.min(100, done/tot*100) : 0;
+  const finished = !state.running && /finish/i.test(state.status||"");
+  const pct = tot ? (finished ? 100 : Math.min(100, done/tot*100)) : 0;
   $("#bar").style.width = pct+"%";
   const rate = state.elapsed>1 ? done/state.elapsed : 0;
-  $("#pCount").innerHTML = tot ? `<b>${fmt(done)}</b> of ${fmt(tot)} checked, ${pct.toFixed(pct<10?1:0)}%` : "Not started";
+  const sk = state.memSkipped ? `. Skipped <b>${fmt(state.memSkipped)}</b> already known taken` : "";
+  $("#pCount").innerHTML = tot ? `<b>${fmt(done)}</b> of ${fmt(tot)} checked, ${pct.toFixed(pct<10?1:0)}%${sk}` : "Not started";
   $("#pSpeed").innerHTML = !tot ? "" : state.running
       ? (rate>0 ? `${rate>=1?rate.toFixed(0):rate.toFixed(2)} names/sec, ${dur((tot-done)/rate)} left` : "Starting")
       : `Took ${dur(state.elapsed)}`;
@@ -720,12 +767,13 @@ async function download(){
   };
   if(CFG.public){
     $("#resetHist").hidden = true;
+    document.querySelector("#memSection .rare-actions").hidden = true;
     $("#offlineMsg").textContent = "The server is restarting. This page will reconnect by itself in a moment.";
     $("#limitHint").textContent = `(max ${fmt(CFG.maxNames)})`;
   }
   if(!Array.isArray(S.rareCats)) S.rareCats = PRESETS.balanced.slice();
   ENABLED = new Set(S.rareCats);
-  buildRareList(); buildPlatforms(); clampLen(); wire(); syncUI(); paintTabs(); render(); poll();
+  buildRareList(); buildPlatforms(); clampLen(); wire(); syncUI(); paintTabs(); render(); poll(); loadMemory();
 })();
 </script>
 </body>

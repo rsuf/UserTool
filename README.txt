@@ -41,8 +41,13 @@ GOOD TO KNOW
   FAQ explains this.
 - On a very old Windows 10 without WebView2, the app opens in the
   browser instead, so it still works.
-- Minecraft drop history is saved next to the .exe
-  (minecraft_name_history.json).
+- Memory: every name the app finds taken is remembered per platform
+  and skipped in later scans, until the user clicks "Forget" in the
+  Memory section. Turning off "Skip names already seen taken" checks
+  everything again, which is needed to catch Minecraft drops.
+- The app's memory lives in %APPDATA%\OG Checker on each user's PC
+  (og_checker_memory.db and minecraft_name_history.json), not next to
+  the .exe.
 - Put a bigger word list next to the .exe as words.txt (one word per
   line) to search more real words.
 - Using your own domain: in docs/index.html, fill in
@@ -88,6 +93,7 @@ Worth knowing:
 Files
   app.py                     the Windows app (window + launcher)
   server.py, checker_core.py the checking engine
+  memory.py                  remembers taken names (SQLite)
   static/index.html          the app's interface
   docs/                      the website
   OGChecker.spec, app.ico    the .exe recipe and icon

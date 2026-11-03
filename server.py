@@ -34,6 +34,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 import checker_core as core
+from memory import Memory
 
 PUBLIC = os.environ.get("PUBLIC", "").strip() in ("1", "true", "yes")
 HOST = "0.0.0.0" if PUBLIC else "127.0.0.1"
@@ -106,6 +107,8 @@ class History:
 
 
 HISTORY = History()
+# Every taken name, every platform. Scans skip these until the user clears the memory.
+MEMORY = Memory(os.path.join(core.data_dir(), "og_checker_memory.db"))
 
 
 # --------------------------------------------------------------------------
@@ -132,10 +135,14 @@ class Job:
         self.total = 0
         self.start_time = 0.0
         self.end_time = 0.0
+        self.skip = {"n": 0}          # names skipped because memory says they're taken
+        self.skip_known = True
         self.run_id += 1
 
-    def start(self, s, plat, names, total, threads, delay, rare_max):
+    def start(self, s, plat, names, total, threads, delay, rare_max, skip=None, skip_known=True):
         self.reset_results()
+        self.skip = skip if skip is not None else {"n": 0}
+        self.skip_known = skip_known
         self.total = total
         self.platform = plat
         self.q = queue.Queue()
@@ -178,6 +185,8 @@ class Job:
                 self.stats["locked"] += 1
                 self.results["locked"].append({"name": name, "label": f"drops in {when} · seen {ago}d ago"})
                 return
+            if not self.skip_known and MEMORY.is_taken(self.platform, name):
+                MEMORY.forget([(self.platform, name)])  # it was taken before, it's free now
             self.stats["avail"] += 1
             # Every category the name fits. The app decides which ones count as rare (user setting).
             self.results["avail"].append({"name": name, "cats": cats})
@@ -186,6 +195,7 @@ class Job:
             self.stats["taken"] += 1
             if self.platform == "Minecraft":
                 HISTORY.mark_taken(data)
+            MEMORY.add(self.platform, data)
             self.results["taken"].append({"name": data})
         elif kind == "skipped":
             self.stats["skipped"] += data
@@ -202,6 +212,7 @@ class Job:
             else:
                 self.status = "Stopped" if self.stop_evt.is_set() else "Finished"
             HISTORY.save(force=True)
+            MEMORY.flush()
 
     def snapshot(self, offsets, run_id):
         with self.lock:
@@ -212,7 +223,7 @@ class Job:
             return {
                 "runId": self.run_id, "running": self.running, "status": self.status, "notice": self.notice,
                 "platform": self.platform, "total": self.total, "elapsed": elapsed, "stats": dict(self.stats),
-                "historySize": len(HISTORY),
+                "historySize": len(HISTORY), "memSkipped": self.skip["n"],
                 "new": {k: v[int(offsets.get(k, 0)):] for k, v in self.results.items()},
             }
 
@@ -244,6 +255,7 @@ def reaper():
                     job.dead = True
                     del JOBS[cid]
         HISTORY.save()
+        MEMORY.flush(force=False)
         # The .exe has no window to close, so it quits by itself a few minutes after the last page is closed
         if FROZEN and not PUBLIC and not EMBEDDED[0] and LAST_PAGE_SEEN[0] and now - LAST_PAGE_SEEN[0] > 180:
             shutdown()
@@ -275,7 +287,17 @@ def start_job(cid, s):
         delay = num("delay", spec["delay"], 0.0, 120.0, float)
     randomize = bool(s.get("random", True))
     mode = s.get("mode", "brute")
-    rare_max = {"strict": 2, "normal": 5, "loose": 6}.get(s.get("rare"), 5)
+    rare_max = 6
+    skip_known = s.get("skipKnown", True) is not False
+    skip = {"n": 0}
+
+    def unknown(gen):
+        """Drop names the memory already knows are taken."""
+        for n in gen:
+            if skip_known and MEMORY.is_taken(plat, n):
+                skip["n"] += 1
+                continue
+            yield n
 
     charset = string.ascii_lowercase
     if s.get("digits"):
@@ -288,10 +310,14 @@ def start_job(cid, s):
         charset += "-"
 
     if mode == "words":
-        total = min(limit, sum(1 for w in core.WORDS if min_len <= len(w) <= max_len))
-        if total == 0:
+        pool = [n for n in core.word_names(min_len, max_len, randomize, 10 ** 9) if core.valid_name(plat, n)]
+        if not pool:
             return "No words match that length range."
-        names = (n for n in core.word_names(min_len, max_len, randomize, limit) if core.valid_name(plat, n))
+        fresh = list(unknown(pool))
+        if not fresh:
+            return f"Every word in that range is already known to be taken on {plat}. Clear the memory to check them again."
+        total = min(limit, len(fresh))
+        names = iter(fresh[:limit])
     elif mode == "keyword":
         kw = str(s.get("keyword", "")).strip().lower()
         allowed = set(string.ascii_lowercase + string.digits
@@ -308,12 +334,12 @@ def start_job(cid, s):
         every = sum((L - len(kw) + 1) * len(charset) ** (L - len(kw)) for L in range(lo, max_len + 1))
         total = min(limit, every)
         raw = core.keyword_names(kw, charset, min_len, max_len, randomize, every)
-        names = itertools.islice((n for n in raw if core.valid_name(plat, n)), limit)
+        names = itertools.islice(unknown(n for n in raw if core.valid_name(plat, n)), limit)
     else:
         every = sum(len(charset) ** n for n in range(min_len, max_len + 1))
         total = min(limit, every)
         raw = core.brute_force_names(charset, min_len, max_len, randomize, every)
-        names = itertools.islice((n for n in raw if core.valid_name(plat, n)), limit)
+        names = itertools.islice(unknown(n for n in raw if core.valid_name(plat, n)), limit)
 
     with JOBS_LOCK:
         job = JOBS.get(cid)
@@ -328,7 +354,7 @@ def start_job(cid, s):
         if PUBLIC and sum(1 for j in running if j.platform == plat) >= PLATFORM_SLOTS.get(plat, 1):
             return f"Someone else is checking {plat} right now. Try again in a minute, or pick another platform."
         with job.lock:
-            job.start(s, plat, names, total, threads, delay, rare_max)
+            job.start(s, plat, names, total, threads, delay, rare_max, skip=skip, skip_known=skip_known)
     return None
 
 
@@ -384,6 +410,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_body(b"ok", "text/plain")
         elif url.path == "/api/config":
             self.send_json(config())
+        elif url.path == "/api/memory":
+            self.send_json({"counts": MEMORY.counts()})
         elif url.path == "/api/poll":
             qs = parse_qs(url.query)
             cid = self.client_id(qs)
@@ -426,6 +454,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send_json({"ok": False}, 403)
             self.send_json({"ok": True})
             threading.Timer(0.3, shutdown).start()
+        elif path == "/api/memory/reset":
+            if PUBLIC:
+                return self.send_json({"ok": False, "error": "Not available on the public site."}, 403)
+            plat = data.get("platform")
+            plat = plat if plat in core.PLATFORMS else None
+            self.send_json({"ok": True, "forgot": MEMORY.reset(plat)})
         elif path == "/api/reset-history":
             if PUBLIC:  # shared data - visitors can't wipe it
                 return self.send_json({"ok": False, "error": "Not available on the public site."}, 403)
@@ -452,6 +486,7 @@ def shutdown():
         for job in JOBS.values():
             job.stop_evt.set()
     HISTORY.save(force=True)
+    MEMORY.flush()
     if SERVER[0]:
         threading.Thread(target=SERVER[0].shutdown, daemon=True).start()
 
@@ -482,6 +517,7 @@ def main():
             for job in JOBS.values():
                 job.stop_evt.set()
         HISTORY.save(force=True)
+        MEMORY.flush()
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 a = Analysis(
     ["app.py"],
     datas=[("static", "static")],
-    hiddenimports=["server", "checker_core"],
+    hiddenimports=["server", "checker_core", "memory", "sqlite3"],
     excludes=["tkinter", "unittest", "pydoc_data"],
 )
 pyz = PYZ(a.pure)
